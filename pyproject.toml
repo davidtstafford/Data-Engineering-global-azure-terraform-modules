@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "scripts"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"s
+python = "^3.9"
 click = "^8.1.0"
 pyyaml = "^6.0"
 rich = "^13.0.0"
@@ -86,4 +86,17 @@ exclude_lines = [
     "raise NotImplementedError",
     "if 0:",
     "if __name__ == .__main__.:",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
 ]

@@ -1,0 +1,241 @@
+name: Validate and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.9"
+  TERRAFORM_VERSION: "1.5.0"
+
+jobs:
+  # Python linting and testing
+  python-quality:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+
+    - name: Install project
+      run: poetry install --no-interaction
+
+    - name: Run black (formatting check)
+      run: poetry run black --check scripts/ tests/
+
+    - name: Run isort (import sorting check)
+      run: poetry run isort --check-only scripts/ tests/
+
+    - name: Run flake8 (linting)
+      run: poetry run flake8 scripts/ tests/
+
+    - name: Run mypy (type checking)
+      run: poetry run mypy scripts/
+
+    - name: Run bandit (security scan)
+      run: poetry run bandit -r scripts/
+
+    - name: Run pytest (unit tests)
+      run: poetry run pytest tests/ -v --cov=scripts --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      if: github.event_name == 'push'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  # Terraform validation
+  terraform-validation:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+    - name: Set up Python (for validation script)
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install Python dependencies
+      run: poetry install --no-interaction
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive terraform/ || true
+
+    - name: Run Terraform Validation Script
+      run: poetry run python scripts/validate.py --all --no-security
+      continue-on-error: true  # Don't fail if no modules exist yet
+
+    - name: Install tflint
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+    - name: Run tflint
+      run: |
+        if [ -d "terraform" ]; then
+          find terraform -name "*.tf" -exec dirname {} \; | sort -u | while read dir; do
+            echo "Linting $dir"
+            tflint "$dir" || true
+          done
+        fi
+
+  # Security scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: poetry install --no-interaction
+
+    - name: Run Checkov (Terraform security scan)
+      run: |
+        if [ -d "terraform" ]; then
+          poetry run checkov -d terraform/ --framework terraform --quiet || true
+        fi
+
+    - name: Run Bandit (Python security scan)
+      run: poetry run bandit -r scripts/ -f json -o bandit-report.json || true
+
+    - name: Upload Bandit scan results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  # Documentation checks
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for required files
+      run: |
+        # Check that required documentation files exist
+        required_files=("README.md" "CONTRIBUTING.md" "LICENSE")
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "Error: Required file $file is missing"
+            exit 1
+          fi
+        done
+
+    - name: Check markdown links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/mlc_config.json'
+      continue-on-error: true
+
+  # Dependency check
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+
+    - name: Check Poetry lock file is up to date
+      run: poetry check
+
+    - name: Export requirements for security scanning
+      run: poetry export -f requirements.txt --output requirements.txt --dev
+
+    - name: Run safety (dependency vulnerability check)
+      run: |
+        pip install safety
+        safety check -r requirements.txt || true
+
+  # Final status check
+  validation-complete:
+    name: All Validations Complete
+    runs-on: ubuntu-latest
+    needs: [python-quality, terraform-validation, security-scan, documentation-check, dependency-check]
+    if: always()
+
+    steps:
+    - name: Check validation results
+      run: |
+        if [[ "${{ needs.python-quality.result }}" == "failure" ]]; then
+          echo "Python quality checks failed"
+          exit 1
+        fi
+
+        echo "All validation checks completed"
+        echo "Python Quality: ${{ needs.python-quality.result }}"
+        echo "Terraform Validation: ${{ needs.terraform-validation.result }}"
+        echo "Security Scan: ${{ needs.security-scan.result }}"
+        echo "Documentation Check: ${{ needs.documentation-check.result }}"
+        echo "Dependency Check: ${{ needs.dependency-check.result }}"
