@@ -225,15 +225,21 @@ class CodeFormatter:
 @click.option("--check", is_flag=True, help="Check formatting without making changes")
 @click.option(
     "--path",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(exists=True),
     multiple=True,
     help="Specific paths to format (can be used multiple times)",
 )
 def main(
-    python_only: bool, terraform_only: bool, check: bool, path: Tuple[Path, ...]
+    python_only: bool, terraform_only: bool, check: bool, path: Tuple[str, ...]
 ) -> None:
     """
     Format Python and Terraform code using black, isort, and terraform fmt.
+
+    Args:
+        python_only: Format only Python code
+        terraform_only: Format only Terraform code
+        check: Check formatting without making changes
+        path: Specific paths to format
 
     Examples:
         python scripts/format.py                    # Format all code
@@ -242,6 +248,8 @@ def main(
         python scripts/format.py --check           # Check without changes
         python scripts/format.py --path scripts/   # Format specific path
     """
+    # Convert string paths to Path objects
+    format_paths = [Path(p) for p in path] if path else []
     base_path = Path.cwd()
     formatter = CodeFormatter(base_path)
 
@@ -263,13 +271,13 @@ def main(
         console.print("[yellow]Check mode: No files will be modified[/yellow]")
 
     # Get paths to format
-    if path:
+    if format_paths:
         python_paths = [
             p
-            for p in path
+            for p in format_paths
             if p.suffix == ".py" or (p.is_dir() and any(p.rglob("*.py")))
         ]
-        terraform_paths = [p for p in path if any(p.rglob("*.tf"))]
+        terraform_paths = [p for p in format_paths if any(p.rglob("*.tf"))]
     else:
         python_paths = formatter.find_python_paths()
         terraform_paths = formatter.find_terraform_paths()

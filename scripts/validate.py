@@ -254,7 +254,7 @@ class TerraformValidator:
 @click.command()
 @click.option(
     "--module",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(exists=True),
     help="Path to specific module to validate",
 )
 @click.option(
@@ -274,7 +274,7 @@ class TerraformValidator:
     help="Check Terraform formatting (default: enabled)",
 )
 def main(
-    module: Optional[Path], validate_all: bool, security: bool, format: bool
+    module: Optional[str], validate_all: bool, security: bool, format: bool
 ) -> None:
     """
     Validate Terraform modules for syntax, security, and best practices.
@@ -287,6 +287,9 @@ def main(
     base_path = Path.cwd()
     validator = TerraformValidator(base_path)
 
+    # Convert string module path to Path object if provided
+    module_path = Path(module) if module else None
+
     console.print(
         Panel.fit(
             "[bold green]Azure Terraform Modules Validator[/bold green]\n"
@@ -297,8 +300,8 @@ def main(
 
     modules_to_validate = []
 
-    if module:
-        modules_to_validate = [module]
+    if module_path:
+        modules_to_validate = [module_path]
     elif validate_all:
         terraform_dir = base_path / "terraform"
         modules_to_validate = validator.find_modules(terraform_dir)
