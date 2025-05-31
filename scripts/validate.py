@@ -232,7 +232,7 @@ class TerraformValidator:
 
     def find_modules(self, terraform_dir: Path) -> List[Path]:
         """Find all Terraform modules in the terraform directory."""
-        modules = []
+        modules: List[Path] = []
 
         if not terraform_dir.exists():
             console.print(
@@ -273,7 +273,9 @@ class TerraformValidator:
     default=True,
     help="Check Terraform formatting (default: enabled)",
 )
-def main(module: Optional[Path], validate_all: bool, security: bool, format: bool):
+def main(
+    module: Optional[Path], validate_all: bool, security: bool, format: bool
+) -> None:
     """
     Validate Terraform modules for syntax, security, and best practices.
 

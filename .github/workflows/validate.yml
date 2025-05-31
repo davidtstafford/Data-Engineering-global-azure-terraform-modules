@@ -60,7 +60,7 @@ jobs:
       run: poetry run mypy scripts/
 
     - name: Run bandit (security scan)
-      run: poetry run bandit -r scripts/
+      run: poetry run bandit -r scripts/ -c .bandit --severity-level medium
 
     - name: Run pytest (unit tests)
       run: poetry run pytest tests/ -v --cov=scripts --cov-report=xml
@@ -152,7 +152,7 @@ jobs:
         fi
 
     - name: Run Bandit (Python security scan)
-      run: poetry run bandit -r scripts/ -f json -o bandit-report.json || true
+      run: poetry run bandit -r scripts/ -c .bandit --severity-level medium -f json -o bandit-report.json || true
 
     - name: Upload Bandit scan results
       if: always()

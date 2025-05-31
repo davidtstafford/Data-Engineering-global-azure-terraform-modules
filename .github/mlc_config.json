@@ -1,0 +1,20 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https://registry.terraform.io"
+    },
+    {
+      "pattern": "^https://portal.azure.com"
+    },
+    {
+      "pattern": "^https://docs.microsoft.com"
+    }
+  ],
+  "timeout": "10s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackTimeouts": {
+    "response": "10s",
+    "deadline": "30s"
+  }
+}

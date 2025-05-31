@@ -229,7 +229,9 @@ class CodeFormatter:
     multiple=True,
     help="Specific paths to format (can be used multiple times)",
 )
-def main(python_only: bool, terraform_only: bool, check: bool, path: Tuple[Path, ...]):
+def main(
+    python_only: bool, terraform_only: bool, check: bool, path: Tuple[Path, ...]
+) -> None:
     """
     Format Python and Terraform code using black, isort, and terraform fmt.
 
