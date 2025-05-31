@@ -156,7 +156,7 @@ jobs:
 
     - name: Upload Bandit scan results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: bandit-report
         path: bandit-report.json
@@ -210,13 +210,19 @@ jobs:
     - name: Check Poetry lock file is up to date
       run: poetry check
 
-    - name: Export requirements for security scanning
-      run: poetry export -f requirements.txt --output requirements.txt --dev
+    - name: Install dependencies
+      run: poetry install --no-interaction
 
     - name: Run safety (dependency vulnerability check)
       run: |
-        pip install safety
-        safety check -r requirements.txt || true
+        poetry run safety check --continue-on-error --json --save-json audit-report.json
+
+    - name: Upload audit results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: safety-audit-report
+        path: audit-report.json
 
   # Final status check
   validation-complete:
