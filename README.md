@@ -96,22 +96,55 @@ module "storage_account" {
 ### Development Setup
 
 #### Prerequisites
-- **Python 3.9+** installed locally
-- **Docker/Rancher Desktop** for containerized development
-- **VS Code** with Dev Containers extension (recommended)
+- **VS Code** with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- **Docker Desktop** (or compatible container runtime)
+- **Git** for version control
 
-#### Option 1: VS Code Dev Container (Recommended)
-1. Clone this repository
-2. Open in VS Code
-3. When prompted, select "Reopen in Container"
-4. Wait for container setup (5-10 minutes first time)
-5. Run `make help` to see available commands
+#### Option 1: VS Code Dev Container (Recommended) 🚀
+Perfect for cross-platform development with zero setup!
+
+1. **Clone and open**:
+   ```bash
+   git clone https://github.com/your-org/azure-terraform-modules.git
+   cd azure-terraform-modules
+   code .
+   ```
+
+2. **Reopen in container**:
+   - Click "Reopen in Container" when prompted, or
+   - Command Palette → "Dev Containers: Reopen in Container"
+
+3. **Start developing**:
+   ```bash
+   make help           # See all commands
+   make install        # Ensure everything is ready
+   make pre-commit     # Quick validation
+   ```
+
+**✅ Includes everything**: Python, Poetry, Terraform, Azure CLI, all linters, formatters, and VS Code extensions pre-configured!
+
+**🎯 Agent Mode**: GitHub Copilot and all VS Code features work seamlessly in the container.
+
+📚 **[Full Dev Container Guide](.devcontainer/README.md)**
 
 #### Option 2: Local Development
-1. Clone this repository
-2. Install Poetry: `curl -sSL https://install.python-poetry.org | python3 -`
-3. Run `make setup` to configure environment
-4. Install Terraform locally from [terraform.io](https://terraform.io)
+For those who prefer local installation:
+
+1. **Install dependencies**:
+   ```bash
+   # Install Poetry
+   curl -sSL https://install.python-poetry.org | python3 -
+   
+   # Install Terraform
+   # See: https://terraform.io/downloads
+   ```
+
+2. **Setup environment**:
+   ```bash
+   git clone https://github.com/your-org/azure-terraform-modules.git
+   cd azure-terraform-modules
+   make install        # Install Python dependencies and pre-commit hooks
+   ```
 
 ## 🛠️ Development Commands
 

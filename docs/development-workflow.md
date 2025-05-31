@@ -4,6 +4,26 @@ This document explains the different levels of checks available and when to use 
 
 ## Quick Reference
 
+### For Dev Container Users (Recommended) 🐳
+```bash
+# One-time setup (automatic in dev container)
+# All tools are pre-installed!
+
+# While developing (fast checks)
+make pre-commit
+
+# Before committing (comprehensive checks)
+make check
+
+# Ready to commit
+make commit-ready
+
+# Container-specific commands
+make container-info     # Show container status
+make azure-login        # Login to Azure CLI
+```
+
+### For Local Development
 ```bash
 # One-time setup
 make install

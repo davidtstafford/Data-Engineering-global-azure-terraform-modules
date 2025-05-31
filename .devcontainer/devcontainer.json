@@ -1,0 +1,120 @@
+{
+  "name": "Azure Terraform Modules Development",
+  "dockerFile": "Dockerfile",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11",
+      "installTools": true,
+      "optimize": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest",
+      "tflint": true,
+      "terragrunt": false
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "version": "latest",
+      "installBicep": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker",
+        "hashicorp.terraform",
+        "ms-vscode.azurecli",
+        "ms-azuretools.vscode-azureresourcegroups",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-python.debugpy",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.test-adapter-converter",
+        "littlefoxteam.vscode-python-test-adapter",
+        "bungcip.better-toml",
+        "redhat.vscode-yaml",
+        "ms-vscode.makefile-tools",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml",
+        "ms-python.flake8"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.flake8Enabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.linting.banditEnabled": true,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": [
+          "tests/"
+        ],
+        "terraform.languageServer.enable": true,
+        "terraform.validation.enable": true,
+        "terraform.format.enable": true,
+        "terraform.codelens.referenceCount": true,
+        "files.associations": {
+          "*.tf": "terraform",
+          "*.tfvars": "terraform"
+        },
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.shell.linux": "/bin/zsh"
+      }
+    }
+  },
+  "forwardPorts": [
+    8000,
+    8080,
+    3000
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "Development Server",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Alt Development Server",
+      "onAutoForward": "notify"
+    },
+    "3000": {
+      "label": "Frontend Server",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "echo '🚀 Dev container ready! Run make help to see available commands.'",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopContainer",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.git,target=/workspace/.git,type=bind,consistency=cached"
+  ]
+}
