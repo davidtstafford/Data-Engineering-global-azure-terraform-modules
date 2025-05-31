@@ -78,7 +78,17 @@ azure-terraform-modules/
 
 ## 🚀 Implementation Phases
 
-### Phase 1: Foundation Scaffold ⭐ **START HERE**
+### Phase 0: Python Environment Setup ⭐ **START HERE**
+
+#### 0.1 Virtual Environment Setup
+- [ ] Create single `.venv` virtual environment in project root
+- [ ] **pyproject.toml** - Poetry configuration with Python dependencies
+- [ ] Verify Poetry can install dependencies into `.venv`
+- [ ] Test that all Python tools work within the virtual environment
+
+**Goal:** Establish a working Python development environment with Poetry
+
+### Phase 1: Foundation Scaffold
 
 #### 1.1 Core Project Files
 - [ ] **README.md** - Project overview, purpose, and quick start guide
@@ -185,6 +195,12 @@ Not available without container:
 
 Each phase must meet these criteria before proceeding:
 
+### Phase 0 Completion Criteria
+- [ ] `.venv` virtual environment created successfully
+- [ ] `pyproject.toml` file created with proper Poetry configuration
+- [ ] Poetry installs all dependencies into `.venv` without errors
+- [ ] All Python tools (black, flake8, mypy, pytest) work within the virtual environment
+
 ### Phase 1 Completion Criteria
 - [ ] `make help` displays all available commands
 - [ ] `make setup` successfully installs dependencies
@@ -204,8 +220,9 @@ Each phase must meet these criteria before proceeding:
 
 ## 🎯 Success Metrics
 
-**Phase 1 Success:** Developer can clone repo, run `make setup`, and have working environment
-**Phase 2 Success:** resource-group module can be referenced from external project via Git tag
+**Phase 0 Success:** Python virtual environment with Poetry working correctly  
+**Phase 1 Success:** Developer can clone repo, run `make setup`, and have working environment  
+**Phase 2 Success:** resource-group module can be referenced from external project via Git tag  
 **Phase 3 Success:** Full CI/CD pipeline with automated testing and security scanning
 
 ---
