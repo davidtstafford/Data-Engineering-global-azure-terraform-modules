@@ -3,7 +3,7 @@
 Smart Terraform module testing script that only tests changed modules.
 
 This script detects which Terraform modules have been modified and runs
-tests only for those modules.
+validation tests only for those modules.
 """
 
 import subprocess
@@ -99,23 +99,18 @@ def get_affected_modules(changed_files: Set[str]) -> Set[Path]:
     return affected_modules
 
 
-def get_module_test_file(module_path: Path, test_type: str = "validation") -> Path:
+def get_module_test_file(module_path: Path) -> Path:
     """Get the test file path for a given module."""
     # Convert module path to test file name
     # e.g., terraform/foundation/resource-group -> test_resource_group_validation.py
 
     module_name = module_path.name.replace("-", "_")
-
-    if test_type == "validation":
-        test_file = f"test_{module_name}_validation.py"
-    else:
-        test_file = f"test_{module_name}_terraform.py"
-
+    test_file = f"test_{module_name}_validation.py"
     test_path = Path("tests/terraform/modules") / test_file
     return test_path
 
 
-def run_tests_for_modules(modules: Set[Path], test_type: str = "validation") -> bool:
+def run_tests_for_modules(modules: Set[Path]) -> bool:
     """Run tests for the specified modules."""
     if not modules:
         print("No Terraform modules to test.")
@@ -129,7 +124,7 @@ def run_tests_for_modules(modules: Set[Path], test_type: str = "validation") -> 
     missing_tests = []
 
     for module in modules:
-        test_file = get_module_test_file(module, test_type)
+        test_file = get_module_test_file(module)
         if test_file.exists():
             test_files.append(str(test_file))
         else:
@@ -163,18 +158,12 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Run Terraform tests for changed modules only"
+        description="Run Terraform validation tests for changed modules only"
     )
     parser.add_argument(
         "--base-branch",
         default="main",
         help="Base branch to compare against (default: main)",
-    )
-    parser.add_argument(
-        "--test-type",
-        choices=["validation", "plan"],
-        default="validation",
-        help="Type of tests to run (default: validation)",
     )
     parser.add_argument(
         "--all", action="store_true", help="Test all modules regardless of changes"
@@ -203,7 +192,7 @@ def main() -> int:
             print("No Terraform modules affected by changes.")
             return 0
 
-    success = run_tests_for_modules(modules, args.test_type)
+    success = run_tests_for_modules(modules)
     return 0 if success else 1
 
 

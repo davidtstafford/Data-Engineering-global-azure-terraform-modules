@@ -81,25 +81,15 @@ test: ## Run all Python tests with coverage
 	poetry run pytest --cov=scripts --cov-report=term-missing --cov-report=html
 	@echo "$(GREEN)✓ All tests passed!$(RESET)"
 
-test-terraform: ## Run Terraform validation tests (no Azure auth required)
+test-terraform: ## Run Terraform validation tests (smart: changed modules only)
 	@echo "$(BLUE)Running Terraform validation tests for changed modules...$(RESET)"
-	python3 scripts/test_changed_modules.py --test-type validation
+	python3 scripts/test_changed_modules.py
 	@echo "$(GREEN)✓ Terraform validation tests passed!$(RESET)"
 
-test-terraform-plan: ## Run Terraform plan tests (requires Azure auth)
-	@echo "$(BLUE)Running Terraform plan tests for changed modules...$(RESET)"
-	python3 scripts/test_changed_modules.py --test-type plan
-	@echo "$(GREEN)✓ Terraform plan tests passed!$(RESET)"
-
-test-terraform-all: ## Run Terraform validation tests for ALL modules (slow)
+test-terraform-all: ## Run Terraform validation tests for ALL modules (comprehensive)
 	@echo "$(BLUE)Running Terraform validation tests for ALL modules...$(RESET)"
-	python3 scripts/test_changed_modules.py --test-type validation --all
+	python3 scripts/test_changed_modules.py --all
 	@echo "$(GREEN)✓ All Terraform validation tests passed!$(RESET)"
-
-test-terraform-plan-all: ## Run Terraform plan tests for ALL modules (requires Azure auth, very slow)
-	@echo "$(BLUE)Running Terraform plan tests for ALL modules...$(RESET)"
-	python3 scripts/test_changed_modules.py --test-type plan --all
-	@echo "$(GREEN)✓ All Terraform plan tests passed!$(RESET)"
 
 test-all: ## Run all tests (Python + Terraform)
 	@echo "$(BLUE)Running all tests (Python + Terraform)...$(RESET)"
