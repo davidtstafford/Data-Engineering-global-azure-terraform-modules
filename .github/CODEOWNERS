@@ -1,0 +1,32 @@
+# Code Owners Configuration
+# This file defines who gets automatically assigned as reviewers for pull requests
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global code owner - gets assigned to all PRs
+* @davidtstafford
+
+# Terraform modules require infrastructure review
+terraform/ @davidtstafford
+terraform/**/*.tf @davidtstafford
+
+# Scripts and automation
+scripts/ @davidtstafford
+scripts/**/*.py @davidtstafford
+
+# Documentation changes
+docs/ @davidtstafford
+*.md @davidtstafford
+
+# CI/CD and GitHub Actions
+.github/ @davidtstafford
+.github/**/*.yml @davidtstafford
+
+# Development environment and tooling
+.devcontainer/ @davidtstafford
+Makefile @davidtstafford
+pyproject.toml @davidtstafford
+poetry.lock @davidtstafford
+
+# Security and configuration files
+.pre-commit-config.yaml @davidtstafford
+.bandit @davidtstafford
