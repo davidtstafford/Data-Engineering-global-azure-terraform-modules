@@ -171,10 +171,92 @@ make test               # Run full test suite (container required)
 make clean              # Clean temporary files
 ```
 
+## 🧪 Testing Framework
+
+This repository includes a comprehensive testing framework for validating Terraform modules without requiring Azure authentication or actual resource deployment. The framework provides fast, reliable validation of module syntax, structure, and configuration.
+
+### Testing Types
+
+#### 1. **Validation Testing** (Recommended for CI/CD)
+Fast validation tests that check module syntax, structure, and configuration without requiring Azure authentication:
+
+```bash
+make test-terraform     # Run all validation tests (~90 seconds)
+make test-all          # Run both Python and Terraform validation tests
+```
+
+**What it validates:**
+- ✅ HCL syntax and formatting
+- ✅ Module structure (required files, variables, outputs)
+- ✅ Provider configuration compatibility
+- ✅ Variable usage and validation rules
+- ✅ Multiple configuration scenarios
+- ✅ Azure region compatibility
+
+#### 2. **Plan Testing** (Optional - Requires Azure Auth)
+Full resource planning tests that validate actual Azure resource configurations:
+
+```bash
+make test-terraform-plan    # Run plan tests (requires Azure CLI login)
+```
+
+### Test Structure
+
+The testing framework is organized under `tests/terraform/`:
+
+```
+tests/terraform/
+├── __init__.py                           # Python module init
+├── base_validation.py                    # Core validation testing infrastructure
+├── config.py                            # Test configuration and utilities
+├── fixtures/                            # Test data and configurations
+│   ├── __init__.py
+│   └── test_data.py
+└── modules/                             # Module-specific tests
+    ├── __init__.py
+    └── test_resource_group_validation.py  # Resource group validation tests
+```
+
+### Adding Tests for New Modules
+
+When creating a new Terraform module, add corresponding validation tests:
+
+1. **Create test file**: `tests/terraform/modules/test_<module_name>_validation.py`
+2. **Inherit from base class**: Use `TerraformValidationTest` for structure
+3. **Add test scenarios**: Include various configuration combinations
+4. **Update Makefile**: Add module-specific test targets if needed
+
+**Example test structure:**
+```python
+from tests.terraform.base_validation import TerraformValidationTest
+
+class TestMyModuleValidation(TerraformValidationTest):
+    def setup_method(self):
+        super().setup_method()
+        self.module_path = self.terraform_root / "path" / "to" / "my-module"
+    
+    def test_module_validation_basic(self):
+        """Test basic module validation."""
+        self.run_terraform_validation(self.module_path)
+```
+
+### Framework Benefits
+
+- **🚀 Fast**: Validation tests run in ~90 seconds without Azure authentication
+- **🔒 Secure**: No Azure credentials required for basic validation
+- **🏗️ Extensible**: Easy to add tests for new modules
+- **🔄 CI/CD Ready**: Perfect for automated testing in pipelines
+- **📊 Comprehensive**: Covers syntax, structure, and configuration validation
+
+### Technical Details
+
+For comprehensive information about the testing framework architecture, configuration options, and advanced usage, see the [Terraform Testing Framework Documentation](docs/terraform-testing-framework.md).
+
 ## 📚 Documentation
 
 - **[Getting Started](docs/getting-started.md)** - Detailed setup instructions
 - **[Module Development](docs/module-development.md)** - How to create new modules
+- **[Terraform Testing Framework](docs/terraform-testing-framework.md)** - Testing infrastructure documentation
 - **[Examples](docs/examples.md)** - Usage patterns and compositions
 - **[Contributing](CONTRIBUTING.md)** - Contribution guidelines
 

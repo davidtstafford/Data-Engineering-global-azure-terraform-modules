@@ -3000,6 +3000,17 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-terraform"
+version = "0.10.1"
+description = "This is a python module provide a wrapper of terraform command line tool"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "python-terraform-0.10.1.tar.gz", hash = "sha256:0f4d1648c4fec61d5aa53142558ba3761c8f9ee7acce57505a1245d4dd85f5cf"},
+]
+
+[[package]]
 name = "pywin32"
 version = "310"
 description = "Python for Window Extensions"
@@ -4117,4 +4128,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "4088eaba08a2259a0ceeba36803f50f32cc8d053c6619a9cf0d6b2d7efe0608f"
+content-hash = "f572856cfd9ee7492deae19563d4ff604775a46c0e66acbbbf7f7e4de23885da"
