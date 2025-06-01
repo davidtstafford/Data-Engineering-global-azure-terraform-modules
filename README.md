@@ -24,8 +24,6 @@ azure-terraform-modules/
 ├── pyproject.toml              # Poetry dependencies and Python config
 ├── Makefile                    # Development commands and workflows
 ├── .gitignore                  # Git ignore patterns
-
-│   └── Dockerfile              # Development environment image
 ├── .github/                    # GitHub Actions and templates
 │   ├── workflows/              
 │   │   └── validate.yml        # CI/CD pipeline
@@ -33,30 +31,35 @@ azure-terraform-modules/
 ├── docs/                       # Documentation
 │   ├── getting-started.md      # Setup and usage guide
 │   ├── module-development.md   # How to create new modules
+│   ├── terraform-testing-framework.md # Testing framework docs
 │   └── examples.md             # Usage examples
 ├── scripts/                    # Development and validation scripts
 │   ├── validate.py            # Terraform validation
-│   └── format.py              # Code formatting
+│   ├── format.py              # Code formatting
+│   └── test_changed_modules.py # Smart testing script
 ├── examples/                   # Usage examples and compositions
 │   └── README.md              # Examples documentation
+├── tests/                     # Testing framework
+│   ├── terraform/             # Terraform module tests
+│   └── *.py                   # Python tests
 └── terraform/                 # All Terraform modules (CATEGORIZED STRUCTURE)
     ├── README.md              # Terraform modules overview
     ├── foundation/            # Core Azure resources
     │   ├── README.md
     │   ├── resource-group/    # Azure Resource Group
-    │   ├── storage-account/   # Azure Storage Account
-    │   └── key-vault/        # Azure Key Vault
-    ├── networking/            # Network-related resources
+    │   ├── storage-account/   # Azure Storage Account (planned)
+    │   └── key-vault/        # Azure Key Vault (planned)
+    ├── networking/            # Network-related resources (planned)
     │   ├── README.md
     │   ├── virtual-network/   # Virtual Network and subnets
     │   └── private-endpoints/ # Private connectivity
-    ├── data/                  # Data platform resources
+    ├── data/                  # Data platform resources (planned)
     │   ├── README.md
     │   ├── eventhub/         # Azure Event Hubs
     │   ├── sql-database/     # Azure SQL Database
     │   ├── data-factory/     # Azure Data Factory
     │   └── synapse/          # Azure Synapse Analytics
-    └── databricks/           # Databricks ecosystem
+    └── databricks/           # Databricks ecosystem (planned)
         ├── README.md
         ├── workspace/        # Databricks Workspace (foundation)
         ├── compute/          # Databricks Compute Clusters
@@ -156,20 +159,40 @@ Setup your development environment locally:
 
 ## 🛠️ Development Commands
 
+The most commonly used commands for daily development:
+
 ```bash
 # Environment setup
-make setup              # Setup local development environment
+make health-check       # Check what tools are missing
+make install            # Install dependencies and setup environment
 make help               # Show all available commands
 
-# Code quality
-make validate           # Validate all Terraform modules
-make format             # Format Terraform and Python code
-make lint               # Run code linting
+# Daily development workflow
+make pre-commit         # Run quick checks (formatting, linting)
+make test-terraform     # Run Terraform tests (smart: changed modules only)
+make check              # Run comprehensive checks before committing
 
-# Development workflow
-make test               # Run full test suite (container required)
+# Testing commands
+make test               # Run Python tests only
+make test-terraform-all # Run Terraform tests for all modules
+make test-all           # Run all tests (Python + Terraform)
+
+# Code quality
+make format             # Format Terraform and Python code
+make lint               # Run linting checks
+make security           # Run security scans
+
+# Cleanup and utilities
 make clean              # Clean temporary files
+make validate           # Run validation scripts
 ```
+
+**Recommended workflow:**
+1. `make health-check` - Verify your development environment
+2. `make install` - One-time setup 
+3. `make pre-commit` - Quick checks while developing
+4. `make test-terraform` - Test your Terraform changes
+5. `make check` - Comprehensive validation before committing
 
 ## 🧪 Testing Framework
 
@@ -280,37 +303,24 @@ make test-terraform          # Smart: only tests affected modules (~30-90 second
 make check                   # Includes formatting, linting, security, and validation
 ```
 
-#### Pre-Deployment Validation (Optional)
-```bash
-# 1. Authenticate with Azure
-az login
-
-# 2. Run comprehensive plan-based tests (only for changed modules)
-make test-terraform-plan     # Smart: only tests affected modules (~2-5 minutes)
-
-# 3. Verify all tests pass before deployment
-```
-
 #### Full Testing (When Needed)
 ```bash
 # Test ALL modules (use sparingly - gets slow with many modules)
 make test-terraform-all      # Tests all modules (~90 seconds per module)
-make test-terraform-plan-all # Plan tests for all modules (~5 minutes per module)
 ```
 
 #### CI/CD Pipeline Configuration
-- **Pull Request Checks**: Use `make test-terraform` (validation only, no Azure auth)
-- **Pre-Deployment**: Optionally run `make test-terraform-plan` with Azure service principal
+
+- **Pull Request Checks**: Use `make test-terraform` (validation only, no Azure auth required)
 - **Regular Validation**: Include `make check` in all CI/CD pipelines
 
 #### When to Use Each Test Type
 
-| Scenario              | Validation Tests       | Plan Tests               | Smart Testing          |
-| --------------------- | ---------------------- | ------------------------ | ---------------------- |
-| **Local Development** | ✅ Changed modules only | ⚠️ Optional               | 🚀 ~30-90 seconds       |
-| **Pull Request CI**   | ✅ Changed modules only | ❌ Skip (auth complexity) | 🚀 Scales with changes  |
-| **Pre-Deployment**    | ✅ Changed modules only | ✅ Changed modules only   | ⚡ Fast feedback        |
-| **Release Pipeline**  | ✅ All modules          | ✅ All modules            | ⚠️ Use `*-all` commands |
+| Scenario              | Validation Tests       | Smart Testing          |
+| --------------------- | ---------------------- | ---------------------- |
+| **Local Development** | ✅ Changed modules only | 🚀 ~30-90 seconds       |
+| **Pull Request CI**   | ✅ Changed modules only | 🚀 Scales with changes  |
+| **Release Pipeline**  | ✅ All modules          | ⚠️ Use `*-all` commands |
 
 ### Smart Testing (Changed Modules Only)
 
@@ -330,9 +340,7 @@ The testing framework automatically detects which Terraform modules have been mo
 **📁 Available Commands:**
 ```bash
 make test-terraform          # Smart: test changed modules only
-make test-terraform-plan     # Smart: plan test changed modules only  
 make test-terraform-all      # Test ALL modules (use when needed)
-make test-terraform-plan-all # Plan test ALL modules (very slow)
 ```
 
 **When to Use Each:**
