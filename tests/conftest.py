@@ -3,11 +3,12 @@ Test configuration for pytest.
 """
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     """Configure pytest with custom markers."""
     config.addinivalue_line(
         "markers", "unit: Unit tests that don't require external dependencies"
@@ -19,13 +20,13 @@ def pytest_configure(config):
 
 
 @pytest.fixture
-def project_root():
+def project_root() -> Path:
     """Fixture providing the project root directory."""
     return Path.cwd()
 
 
 @pytest.fixture
-def sample_terraform_module(tmp_path):
+def sample_terraform_module(tmp_path: Path) -> Path:
     """Fixture creating a sample Terraform module for testing."""
     module_dir = tmp_path / "sample-module"
     module_dir.mkdir()
@@ -103,7 +104,7 @@ module "example" {
 
 
 @pytest.fixture
-def sample_python_files(tmp_path):
+def sample_python_files(tmp_path: Path) -> Path:
     """Fixture creating sample Python files for testing."""
     python_dir = tmp_path / "python_code"
     python_dir.mkdir()
