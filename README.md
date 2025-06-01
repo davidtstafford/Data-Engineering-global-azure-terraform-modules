@@ -105,12 +105,39 @@ module "storage_account" {
 Setup your development environment locally:
 
 1. **Install dependencies**:
+
+   **On macOS (using Homebrew):**
    ```bash
-   # Install Poetry
-   curl -sSL https://install.python-poetry.org | python3 -
+   # Install Homebrew if not already installed
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    
-   # Install Terraform: https://terraform.io/downloads
-   # Install Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+   # Install Azure CLI
+   brew install azure-cli
+   
+   # Install Terraform (Note: Due to licensing changes, consider OpenTofu as alternative)
+   brew install terraform
+   
+   # Install Poetry for Python dependency management
+   curl -sSL https://install.python-poetry.org | python3 -
+   ```
+
+   **On other platforms:**
+   - **Terraform**: Download from https://terraform.io/downloads
+   - **Azure CLI**: Follow instructions at https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+   - **Poetry**: Follow instructions at https://python-poetry.org/docs/#installation
+
+   **Verify installations:**
+   ```bash
+   az --version          # Should show Azure CLI version
+   terraform --version   # Should show Terraform version  
+   poetry --version      # Should show Poetry version
+   ```
+
+   **⚠️ Note about Terraform Licensing:**
+   HashiCorp changed Terraform's license to Business Source License (BUSL) starting from version 1.6+. For production environments, consider using [OpenTofu](https://opentofu.org/) (the open-source fork) instead:
+   ```bash
+   # Alternative: Install OpenTofu (fully compatible with Terraform)
+   brew install opentofu
    ```
 
 2. **Clone and setup**:

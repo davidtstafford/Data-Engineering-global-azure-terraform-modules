@@ -467,7 +467,8 @@ class HealthChecker:
         if not self.is_container:
             docker_available = any(
                 "Container Runtime" in r.name and r.status == ToolStatus.AVAILABLE
-                for r in self.results        )
+                for r in self.results
+            )
         if docker_available:
             print("4. Docker is available for containerized development if needed")
 
