@@ -97,7 +97,7 @@ terraform-check: ## Validate and check Terraform modules
 	done
 	@echo "$(GREEN)✓ Terraform validation complete!$(RESET)"
 
-terraform-format: ## Format Terraform files
+terraform-format: ##Format Terraform files
 	@echo "$(BLUE)Formatting Terraform files...$(RESET)"
 	terraform fmt -recursive terraform/
 	@echo "$(GREEN)✓ Terraform formatting complete!$(RESET)"
