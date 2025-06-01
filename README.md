@@ -24,8 +24,7 @@ azure-terraform-modules/
 ├── pyproject.toml              # Poetry dependencies and Python config
 ├── Makefile                    # Development commands and workflows
 ├── .gitignore                  # Git ignore patterns
-├── .devcontainer/              # VS Code dev container configuration
-│   ├── devcontainer.json       # Container settings and extensions
+
 │   └── Dockerfile              # Development environment image
 ├── .github/                    # GitHub Actions and templates
 │   ├── workflows/              
@@ -96,54 +95,36 @@ module "storage_account" {
 ### Development Setup
 
 #### Prerequisites
-- **VS Code** with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-- **Docker Desktop** (or compatible container runtime)
+- **Terraform** (latest version)
+- **Azure CLI** (latest version)
+- **Python** (3.11+) with Poetry
+- **VS Code** (recommended editor)
 - **Git** for version control
 
-#### Option 1: VS Code Dev Container (Recommended) 🚀
-Perfect for cross-platform development with zero setup!
-
-1. **Clone and open**:
-   ```bash
-   git clone https://github.com/your-org/azure-terraform-modules.git
-   cd azure-terraform-modules
-   code .
-   ```
-
-2. **Reopen in container**:
-   - Click "Reopen in Container" when prompted, or
-   - Command Palette → "Dev Containers: Reopen in Container"
-
-3. **Start developing**:
-   ```bash
-   make help           # See all commands
-   make install        # Ensure everything is ready
-   make pre-commit     # Quick validation
-   ```
-
-**✅ Includes everything**: Python, Poetry, Terraform, Azure CLI, all linters, formatters, and VS Code extensions pre-configured!
-
-**🎯 Agent Mode**: GitHub Copilot and all VS Code features work seamlessly in the container.
-
-📚 **[Full Dev Container Guide](.devcontainer/README.md)**
-
-#### Option 2: Local Development
-For those who prefer local installation:
+#### Local Development Setup
+Setup your development environment locally:
 
 1. **Install dependencies**:
    ```bash
    # Install Poetry
    curl -sSL https://install.python-poetry.org | python3 -
    
-   # Install Terraform
-   # See: https://terraform.io/downloads
+   # Install Terraform: https://terraform.io/downloads
+   # Install Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
    ```
 
-2. **Setup environment**:
+2. **Clone and setup**:
    ```bash
    git clone https://github.com/your-org/azure-terraform-modules.git
    cd azure-terraform-modules
    make install        # Install Python dependencies and pre-commit hooks
+   ```
+
+3. **Start developing**:
+   ```bash
+   make help           # See all commands
+   make install        # Ensure everything is ready
+   make pre-commit     # Quick validation
    ```
 
 ## 🛠️ Development Commands
@@ -173,33 +154,33 @@ make clean              # Clean temporary files
 ## 🔧 Available Modules
 
 ### Foundation Modules
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [resource-group](terraform/foundation/resource-group/) | Azure Resource Group | ✅ Available |
-| [storage-account](terraform/foundation/storage-account/) | Azure Storage Account | 🚧 Planned |
-| [key-vault](terraform/foundation/key-vault/) | Azure Key Vault | 🚧 Planned |
+| Module                                                   | Purpose               | Status      |
+| -------------------------------------------------------- | --------------------- | ----------- |
+| [resource-group](terraform/foundation/resource-group/)   | Azure Resource Group  | ✅ Available |
+| [storage-account](terraform/foundation/storage-account/) | Azure Storage Account | 🚧 Planned   |
+| [key-vault](terraform/foundation/key-vault/)             | Azure Key Vault       | 🚧 Planned   |
 
 ### Networking Modules
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [virtual-network](terraform/networking/virtual-network/) | Virtual Network | 🚧 Planned |
+| Module                                                       | Purpose              | Status    |
+| ------------------------------------------------------------ | -------------------- | --------- |
+| [virtual-network](terraform/networking/virtual-network/)     | Virtual Network      | 🚧 Planned |
 | [private-endpoints](terraform/networking/private-endpoints/) | Private connectivity | 🚧 Planned |
 
 ### Data Platform Modules  
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [eventhub](terraform/data/eventhub/) | Event streaming | 🚧 Planned |
+| Module                                       | Purpose             | Status    |
+| -------------------------------------------- | ------------------- | --------- |
+| [eventhub](terraform/data/eventhub/)         | Event streaming     | 🚧 Planned |
 | [sql-database](terraform/data/sql-database/) | Relational database | 🚧 Planned |
-| [data-factory](terraform/data/data-factory/) | Data integration | 🚧 Planned |
-| [synapse](terraform/data/synapse/) | Analytics platform | 🚧 Planned |
+| [data-factory](terraform/data/data-factory/) | Data integration    | 🚧 Planned |
+| [synapse](terraform/data/synapse/)           | Analytics platform  | 🚧 Planned |
 
 ### Databricks Modules
-| Module | Purpose | Status |
-|--------|---------|--------|
-| [workspace](terraform/databricks/workspace/) | Workspace foundation | 🚧 Planned |
-| [compute](terraform/databricks/compute/) | Compute clusters | 🚧 Planned |
-| [unity-catalog](terraform/databricks/unity-catalog/) | Data governance | 🚧 Planned |
-| [notebooks](terraform/databricks/notebooks/) | Notebook management | 🚧 Planned |
+| Module                                               | Purpose              | Status    |
+| ---------------------------------------------------- | -------------------- | --------- |
+| [workspace](terraform/databricks/workspace/)         | Workspace foundation | 🚧 Planned |
+| [compute](terraform/databricks/compute/)             | Compute clusters     | 🚧 Planned |
+| [unity-catalog](terraform/databricks/unity-catalog/) | Data governance      | 🚧 Planned |
+| [notebooks](terraform/databricks/notebooks/)         | Notebook management  | 🚧 Planned |
 
 ## 🏷️ Versioning
 

@@ -14,7 +14,7 @@ This guide will help you set up your development environment and start using the
 ### Optional Tools
 
 - **Docker/Rancher Desktop** for containerized development
-- **VS Code** with Dev Containers extension for consistent environment
+- **VS Code** for enhanced development experience
 
 ## 🚀 Quick Start for Module Users
 
@@ -135,31 +135,6 @@ poetry run pre-commit install
 # Test hooks
 poetry run pre-commit run --all-files
 ```
-
-### Option 2: VS Code Dev Container
-
-#### 1. Prerequisites
-
-- **Docker Desktop** or **Rancher Desktop**
-- **VS Code** with **Dev Containers** extension
-
-#### 2. Setup
-
-```bash
-# Clone repository
-git clone https://github.com/your-org/azure-terraform-modules.git
-cd azure-terraform-modules
-
-# Open in VS Code
-code .
-```
-
-#### 3. Open in Container
-
-1. VS Code will prompt: **"Reopen in Container"**
-2. Click **"Reopen in Container"**
-3. Wait for container build (5-10 minutes first time)
-4. Development environment is ready!
 
 ## ✅ Verify Your Setup
 

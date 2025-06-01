@@ -1,6 +1,5 @@
 #!/bin/bash
-# filepath: /Users/davidstafford/git/Data-Engineering-global-azure-terraform-modules/scripts/container-health-check.sh
-# Cross-environment health check script for development setup validation
+# Local development environment health check script for development setup validation
 
 set -e
 
@@ -31,11 +30,6 @@ print_status() {
     esac
 }
 
-# Function to check if we're in a dev container
-is_dev_container() {
-    [[ -n "${REMOTE_CONTAINERS}" || -n "${CODESPACES}" || -n "${VSCODE_REMOTE_CONTAINERS_SESSION}" ]]
-}
-
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -44,8 +38,7 @@ command_exists() {
 # Function to get version of a command
 get_version() {
     local cmd=$1
-    local version_arg=${2:-"--version"}
-
+    
     if command_exists "$cmd"; then
         case $cmd in
             "terraform")
@@ -70,7 +63,7 @@ get_version() {
                 terraform-docs version | awk '{print $3}'
                 ;;
             *)
-                $cmd $version_arg 2>/dev/null | head -n1 || echo "unknown"
+                $cmd --version 2>/dev/null | head -n1 || echo "unknown"
                 ;;
         esac
     else
@@ -80,18 +73,15 @@ get_version() {
 
 # Main health check function
 main() {
-    echo -e "${BLUE}🔍 Environment Health Check${NC}"
-    echo "=================================="
+    echo -e "${BLUE}🔍 Local Development Environment Health Check${NC}"
+    echo "=============================================="
 
-    # Detect environment
-    if is_dev_container; then
-        print_status "INFO" "Running inside VS Code Dev Container"
-        EXPECTED_TOOLS=("python3" "poetry" "terraform" "az" "pre-commit" "tflint" "terraform-docs" "git" "make" "jq")
-    else
-        print_status "INFO" "Running in local development environment"
-        EXPECTED_TOOLS=("python3" "poetry" "git" "make")
-        OPTIONAL_TOOLS=("terraform" "az" "pre-commit" "tflint" "terraform-docs" "jq")
-    fi
+    print_status "INFO" "Running in local development environment"
+
+    # Required tools for basic development
+    REQUIRED_TOOLS=("python3" "git" "make")
+    # Optional tools that enhance development experience
+    OPTIONAL_TOOLS=("poetry" "terraform" "az" "pre-commit" "tflint" "terraform-docs" "jq")
 
     echo ""
 
@@ -99,7 +89,7 @@ main() {
     echo -e "${BLUE}Required Tools:${NC}"
     all_required_present=true
 
-    for tool in "${EXPECTED_TOOLS[@]}"; do
+    for tool in "${REQUIRED_TOOLS[@]}"; do
         if command_exists "$tool"; then
             version=$(get_version "$tool")
             print_status "PASS" "$tool ($version)"
@@ -109,19 +99,32 @@ main() {
         fi
     done
 
-    # Check optional tools (for local environment)
-    if [[ -n "${OPTIONAL_TOOLS:-}" ]]; then
-        echo ""
-        echo -e "${BLUE}Optional Tools (install via dev container):${NC}"
-        for tool in "${OPTIONAL_TOOLS[@]}"; do
-            if command_exists "$tool"; then
-                version=$(get_version "$tool")
-                print_status "PASS" "$tool ($version)"
-            else
-                print_status "WARN" "$tool (not found - available in dev container)"
-            fi
-        done
-    fi
+    # Check optional tools
+    echo ""
+    echo -e "${BLUE}Optional Tools (recommended for full development experience):${NC}"
+    optional_installed=0
+    for tool in "${OPTIONAL_TOOLS[@]}"; do
+        if command_exists "$tool"; then
+            version=$(get_version "$tool")
+            print_status "PASS" "$tool ($version)"
+            ((optional_installed++))
+        else
+            case $tool in
+                "poetry")
+                    print_status "WARN" "$tool (not found - install from https://python-poetry.org)"
+                    ;;
+                "terraform")
+                    print_status "WARN" "$tool (not found - install from https://terraform.io/downloads)"
+                    ;;
+                "az")
+                    print_status "WARN" "$tool (not found - install Azure CLI)"
+                    ;;
+                *)
+                    print_status "WARN" "$tool (not found - will be installed via poetry)"
+                    ;;
+            esac
+        fi
+    done
 
     echo ""
 
@@ -129,7 +132,7 @@ main() {
     echo -e "${BLUE}Python Environment:${NC}"
     if command_exists "python3"; then
         python_version=$(python3 --version | awk '{print $2}')
-        if [[ "$python_version" =~ ^3\.(9|10|11|12) ]]; then
+        if [[ "$python_version" =~ ^3\.(9|10|11|12|13) ]]; then
             print_status "PASS" "Python version $python_version (compatible)"
         else
             print_status "WARN" "Python version $python_version (recommend 3.9+)"
@@ -138,10 +141,8 @@ main() {
         # Check if we're in a virtual environment
         if [[ -n "${VIRTUAL_ENV:-}" ]] || [[ -n "${CONDA_DEFAULT_ENV:-}" ]]; then
             print_status "PASS" "Virtual environment active: ${VIRTUAL_ENV:-$CONDA_DEFAULT_ENV}"
-        elif is_dev_container; then
-            print_status "INFO" "Dev container (no virtual env needed)"
         else
-            print_status "WARN" "No virtual environment detected"
+            print_status "INFO" "No virtual environment (Poetry will manage this)"
         fi
     fi
 
@@ -160,7 +161,7 @@ main() {
         if [[ -f "poetry.lock" ]]; then
             print_status "PASS" "poetry.lock found"
         else
-            print_status "WARN" "poetry.lock not found (run 'poetry install')"
+            print_status "WARN" "poetry.lock not found (run 'make install')"
         fi
     fi
 
@@ -180,7 +181,7 @@ main() {
                         print_status "PASS" "Pre-commit hooks available"
                     fi
                 else
-                    print_status "WARN" "Pre-commit not installed"
+                    print_status "INFO" "Pre-commit will be installed via 'make install'"
                 fi
             else
                 print_status "WARN" "Pre-commit configuration not found"
@@ -193,34 +194,30 @@ main() {
     # Summary
     echo ""
     echo -e "${BLUE}Summary:${NC}"
-    if is_dev_container; then
-        if $all_required_present; then
-            print_status "PASS" "Dev container environment is fully configured"
+    if $all_required_present; then
+        print_status "PASS" "Local environment has required tools"
+        if [ $optional_installed -ge 3 ]; then
             echo -e "${GREEN}🎉 Ready for development!${NC}"
         else
-            print_status "FAIL" "Some required tools are missing"
-            echo -e "${RED}❌ Dev container setup needs attention${NC}"
+            echo -e "${YELLOW}💡 Install optional tools for the best experience${NC}"
         fi
     else
-        if $all_required_present; then
-            print_status "PASS" "Local environment has required tools"
-            echo -e "${YELLOW}💡 Consider using dev container for full tool suite${NC}"
-        else
-            print_status "FAIL" "Local environment is missing required tools"
-            echo -e "${YELLOW}🚀 Use dev container: Open in VS Code and 'Reopen in Container'${NC}"
-        fi
+        print_status "FAIL" "Local environment is missing required tools"
+        echo -e "${RED}❌ Please install missing required tools${NC}"
     fi
 
     echo ""
     echo -e "${BLUE}Next Steps:${NC}"
-    if is_dev_container; then
+    if $all_required_present; then
         echo "• Run 'make help' to see available commands"
-        echo "• Run 'make setup-dev' to initialize the development environment"
-        echo "• Run 'make demo' to see a demonstration of the tools"
-    else
-        echo "• Install missing tools or use the dev container"
-        echo "• Run 'make container-info' for dev container setup instructions"
+        echo "• Run 'make install' to setup Python dependencies"
         echo "• Run 'make demo' to see current environment status"
+        if [ $optional_installed -lt 3 ]; then
+            echo "• Install optional tools for full functionality"
+        fi
+    else
+        echo "• Install missing required tools"
+        echo "• Run this script again to verify installation"
     fi
 }
 

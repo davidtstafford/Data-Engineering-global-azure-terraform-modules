@@ -261,7 +261,7 @@ class HealthChecker:
                 name=f"Container Runtime ({docker_cmd})",
                 status=ToolStatus.AVAILABLE,
                 version=version,
-                message="Available for dev containers",
+                message="Container runtime available",
             )
         else:
             return ToolCheck(
@@ -467,11 +467,9 @@ class HealthChecker:
         if not self.is_container:
             docker_available = any(
                 "Container Runtime" in r.name and r.status == ToolStatus.AVAILABLE
-                for r in self.results
-            )
-            if docker_available:
-                print("4. Consider using dev containers for consistent environment")
-                print("   Open this project in VS Code and reopen in container")
+                for r in self.results        )
+        if docker_available:
+            print("4. Docker is available for containerized development if needed")
 
 
 def main() -> None:

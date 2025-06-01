@@ -22,7 +22,6 @@ docs/ @davidtstafford
 .github/**/*.yml @davidtstafford
 
 # Development environment and tooling
-.devcontainer/ @davidtstafford
 Makefile @davidtstafford
 pyproject.toml @davidtstafford
 poetry.lock @davidtstafford

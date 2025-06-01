@@ -19,26 +19,10 @@ help: ## Show this help message
 	@echo "$(BLUE)Azure Terraform Modules - Development Commands$(RESET)"
 	@echo "================================================="
 	@echo ""
-	@if [ -f /.dockerenv ]; then \
-		echo "$(GREEN)🐳 Running in Dev Container$(RESET)"; \
-		echo ""; \
-	fi
-	@echo "$(GREEN)Quick Start:$(RESET)"
-	@if [ -f /.dockerenv ]; then \
-		echo "  $(BLUE)🐳 You're in the dev container!$(RESET)"; \
-		echo "  make health-check  # Verify all tools are working"; \
-		echo "  make install       # Ensure dependencies are installed"; \
-		echo "  make pre-commit    # Run fast checks"; \
-		echo "  make check         # Run comprehensive checks"; \
-	else \
-		echo "  $(YELLOW)💻 Local development:$(RESET)"; \
-		echo "  make health-check  # Check what tools are missing"; \
-		echo "  make install       # Set up development environment"; \
-		echo "  make pre-commit    # Run fast checks"; \
-		echo "  $(BLUE)🐳 Or use dev container (recommended):$(RESET)"; \
-		echo "  1. Open in VS Code"; \
-		echo "  2. 'Dev Containers: Reopen in Container'"; \
-	fi
+	@echo "$(GREEN)💻 Local Development Setup:$(RESET)"
+	@echo "  make health-check  # Check what tools are missing"
+	@echo "  make install       # Set up development environment"
+	@echo "  make pre-commit    # Run fast checks"
 	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(RESET)"
 	@echo "  1. make install           # One-time setup"
@@ -177,91 +161,67 @@ debug-env: ## Show development environment info
 	@poetry show --tree
 
 # Development Container helpers
-container-info: ## Show development container information
-	@echo "$(BLUE)Development Container Info:$(RESET)"
-	@if [ -f /.dockerenv ]; then \
-		echo "$(GREEN)✓ Running in container$(RESET)"; \
-		echo "Container OS: $$(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | tr -d '\"')"; \
-		echo "Container User: $$(whoami)"; \
-		echo "Working Directory: $$(pwd)"; \
-		echo "Available Tools:"; \
-		echo "  - Terraform: $$(terraform version -json | jq -r '.terraform_version' 2>/dev/null || echo 'not available')"; \
-		echo "  - Azure CLI: $$(az version --output tsv --query 'azure-cli' 2>/dev/null || echo 'not available')"; \
-		echo "  - Pre-commit: $$(pre-commit --version 2>/dev/null || echo 'not available')"; \
-		echo "  - Checkov: $$(checkov --version 2>/dev/null || echo 'not available')"; \
-	else \
-		echo "$(YELLOW)⚠️  Not running in development container$(RESET)"; \
-		echo "To use the dev container:"; \
-		echo "  1. Open project in VS Code"; \
-		echo "  2. Install Dev Containers extension"; \
-		echo "  3. Command Palette → 'Dev Containers: Reopen in Container'"; \
-	fi
+container-info: ## Show development environment information
+	@echo "$(BLUE)Development Environment Information$(RESET)"
+	@echo "========================================="
+	@echo ""
+	@echo "$(GREEN)💻 Local Development Environment$(RESET)"
+	@echo ""
+	@echo "Available Tools:"
+	@echo "  - Terraform: $$(terraform version -json | jq -r '.terraform_version' 2>/dev/null || echo 'not available - install from https://terraform.io/downloads')"
+	@echo "  - Azure CLI: $$(az version --output tsv --query 'azure-cli' 2>/dev/null || echo 'not available - install from https://docs.microsoft.com/en-us/cli/azure/install-azure-cli')"
+	@echo "  - Pre-commit: $$(pre-commit --version 2>/dev/null || echo 'not available - will be installed via make install')"
+	@echo "  - Poetry: $$(poetry --version 2>/dev/null || echo 'not available - install from https://python-poetry.org/docs/#installation')"
 
 health-check: ## Run comprehensive development environment health check
 	@echo "$(BLUE)Running development environment health check...$(RESET)"
-	@if [ -f scripts/health_check.py ]; then \
-		poetry run python scripts/health_check.py; \
-	else \
-		bash scripts/container-health-check.sh; \
-	fi
+	@bash scripts/local-health-check.sh
 
-demo: ## Quick demo showing local vs container environment
+demo: ## Quick demo showing local environment status
 	@echo "$(BLUE)🔍 Quick Environment Check$(RESET)"
 	@echo "=========================="
 	@echo ""
-	@if [ -f /.dockerenv ]; then \
-		echo "$(GREEN)🐳 You're running in the dev container!$(RESET)"; \
-		echo "This means all tools are pre-installed and ready to use."; \
-	else \
-		echo "$(YELLOW)💻 You're running locally on your Mac$(RESET)"; \
-		echo "Some tools may not be installed."; \
-	fi
+	@echo "$(YELLOW)💻 You're running locally$(RESET)"
+	@echo "Checking what tools are available..."
 	@echo ""
 	@echo "Tool availability:"
 	@if command -v terraform >/dev/null 2>&1; then \
 		echo "  $(GREEN)✓ Terraform$(RESET) - Available"; \
 	else \
-		echo "  $(RED)❌ Terraform$(RESET) - Not found"; \
+		echo "  $(RED)❌ Terraform$(RESET) - Not found (install from https://terraform.io/downloads)"; \
 	fi
 	@if command -v az >/dev/null 2>&1; then \
 		echo "  $(GREEN)✓ Azure CLI$(RESET) - Available"; \
 	else \
-		echo "  $(RED)❌ Azure CLI$(RESET) - Not found"; \
+		echo "  $(RED)❌ Azure CLI$(RESET) - Not found (install from Azure CLI docs)"; \
 	fi
 	@if command -v poetry >/dev/null 2>&1; then \
 		echo "  $(GREEN)✓ Poetry$(RESET) - Available"; \
 	else \
-		echo "  $(RED)❌ Poetry$(RESET) - Not found"; \
+		echo "  $(RED)❌ Poetry$(RESET) - Not found (install from https://python-poetry.org)"; \
 	fi
 	@echo ""
-	@if [ -f /.dockerenv ]; then \
-		echo "$(GREEN)🎉 All set! You can run:$(RESET)"; \
-		echo "  • make pre-commit     # Fast validation"; \
-		echo "  • make check          # Comprehensive checks"; \
-		echo "  • terraform --version # Check Terraform"; \
-	else \
-		echo "$(BLUE)💡 To get all tools instantly:$(RESET)"; \
-		echo "  1. Open this project in VS Code"; \
-		echo "  2. Install 'Dev Containers' extension"; \
-		echo "  3. Command Palette → 'Dev Containers: Reopen in Container'"; \
-		echo "  4. Wait for setup (3-5 minutes first time)"; \
-		echo "  5. Run 'make demo' again!"; \
-	fi
+	@echo "$(GREEN)🎉 Next steps:$(RESET)"
+	@echo "  • Install any missing tools above"
+	@echo "  • Run 'make install' to setup project"
+	@echo "  • Run 'make pre-commit' for fast validation"
+	@echo "  • Run 'make check' for comprehensive checks"
 
-azure-login: ## Login to Azure CLI (for container development)
+azure-login: ## Login to Azure CLI
 	@echo "$(BLUE)Logging into Azure CLI...$(RESET)"
 	@if command -v az >/dev/null 2>&1; then \
 		az login --use-device-code; \
 		echo "$(GREEN)✓ Azure login complete!$(RESET)"; \
 	else \
 		echo "$(RED)❌ Azure CLI not found$(RESET)"; \
+		echo "Install Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"; \
 	fi
 
-container-reset: ## Reset development container environment (clear caches, reinstall)
-	@echo "$(BLUE)Resetting development container environment...$(RESET)"
+dev-reset: ## Reset development environment (clear caches, reinstall)
+	@echo "$(BLUE)Resetting development environment...$(RESET)"
 	$(MAKE) clean
 	poetry cache clear pypi --all || true
 	poetry install --no-interaction
 	poetry run pre-commit clean
 	poetry run pre-commit install --install-hooks
-	@echo "$(GREEN)✓ Container environment reset complete!$(RESET)"
+	@echo "$(GREEN)✓ Development environment reset complete!$(RESET)"
