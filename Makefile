@@ -27,7 +27,6 @@ help: ## Show this help message
 	@echo "$(GREEN)🧪 Testing Commands:$(RESET)"
 	@echo "  make test              # Run Python tests only"
 	@echo "  make test-terraform    # Run Terraform tests for changed modules only"
-	@echo "  make test-terraform-plan # Run terraform plan tests for changed modules only"
 	@echo "  make test-terraform-all  # Run Terraform tests for ALL modules (slow)"
 	@echo "  make test-all          # Run all tests (Python + Terraform)"
 	@echo ""
