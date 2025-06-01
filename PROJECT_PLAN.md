@@ -5,8 +5,8 @@
 This repository provides globally reusable Terraform modules for Azure data engineering projects. Each module is designed to be referenced from other repositories using Git tags for version control and stability.
 
 **Target Audience:** DevOps engineers and experienced Data Engineers with Terraform knowledge  
-**Platform Support:** Cross-platform development via Docker containers (Windows/Mac/Linux)  
-**IDE:** VS Code with Dev Containers extension (recommended)
+**Platform Support:** Cross-platform development  
+**IDE:** VS Code (recommended)
 
 ## 📁 Final Project Structure
 
@@ -18,9 +18,6 @@ azure-terraform-modules/
 ├── pyproject.toml              # Poetry dependencies
 ├── Makefile                    # Development commands
 ├── .gitignore                  # Git ignore patterns
-├── .devcontainer/              # VS Code dev container config
-│   ├── devcontainer.json       # Container settings and extensions
-│   └── Dockerfile              # Development environment image
 ├── .github/                    # GitHub Actions and templates
 │   ├── workflows/              
 │   │   └── validate.yml        # CI/CD pipeline
@@ -96,17 +93,13 @@ azure-terraform-modules/
 - [ ] **Makefile** - Development commands (setup, validate, format, help)
 - [ ] **.gitignore** - Comprehensive ignore patterns for Python, Terraform, IDE files
 
-#### 1.2 Development Environment
-- [ ] **.devcontainer/devcontainer.json** - VS Code container configuration
-- [ ] **.devcontainer/Dockerfile** - Development environment with Terraform, Python, Azure CLI
-- [ ] **docs/getting-started.md** - Setup instructions for both container and local development
-
-#### 1.3 Basic Scripts
+#### 1.2 Basic Scripts
 - [ ] **scripts/validate.py** - Basic Terraform validation script
 - [ ] **scripts/format.py** - Code formatting automation
 - [ ] Test that `make help` and `make setup` work
 
-#### 1.4 Documentation Structure
+#### 1.3 Documentation Structure
+- [ ] **docs/getting-started.md** - Local development setup instructions
 - [ ] **docs/module-development.md** - Guidelines for creating new modules
 - [ ] **docs/examples.md** - How to use modules in other projects
 - [ ] **CONTRIBUTING.md** - Contribution guidelines and standards
@@ -147,7 +140,7 @@ Create README.md files for all planned modules:
 #### 2.3 Validation Integration
 - [ ] Update **scripts/validate.py** to discover and validate the foundation/resource-group module
 - [ ] Test that `make validate` works with the new module
-- [ ] Verify `terraform fmt`, `terraform validate` work in dev container
+- [ ] Verify `terraform fmt`, `terraform validate` work locally
 
 ### Phase 3: Development Workflow (Future Enhancement)
 
@@ -168,23 +161,24 @@ Create README.md files for all planned modules:
 
 ### Prerequisites (User Must Install)
 - **Python 3.9+** - Core language runtime
-- **Docker/Rancher Desktop** - For containerized development  
+- **Terraform** - Infrastructure as code tool
+- **Azure CLI** - Azure resource management
+- **Poetry** - Python dependency management
 - **VS Code** - Recommended IDE
-- **Dev Containers Extension** - For VS Code container integration
 
-### What the Container Provides
+### What the Local Environment Provides
 - **Terraform** - Infrastructure as code tool
 - **Azure CLI** - Azure resource management
 - **Poetry** - Python dependency management
 - **Testing Tools** - pytest, terraform-compliance, checkov
 - **Code Quality Tools** - black, isort, flake8, tflint
 
-### Local Development (Without Container)
-Available commands without container:
+### Local Development Commands
+Available commands:
 - ✅ Edit Terraform and Python files
 - ✅ `make help` - Show available commands
-- ✅ `make setup` - Setup Poetry environment (requires Poetry installed)
-- ✅ `terraform fmt`, `terraform validate` (requires local Terraform)
+- ✅ `make setup` - Setup Poetry environment
+- ✅ `terraform fmt`, `terraform validate` - Format and validate Terraform
 
 Not available without container:
 - ❌ Full validation pipeline
@@ -204,7 +198,7 @@ Each phase must meet these criteria before proceeding:
 ### Phase 1 Completion Criteria
 - [ ] `make help` displays all available commands
 - [ ] `make setup` successfully installs dependencies
-- [ ] Dev container builds and runs without errors
+- [ ] Local development environment configured properly
 - [ ] All documentation files created with proper content
 
 ### Phase 2 Completion Criteria  
@@ -217,6 +211,15 @@ Each phase must meet these criteria before proceeding:
 - [ ] CI/CD pipeline passes all tests
 - [ ] Security scanning implemented
 - [ ] At least 3 additional modules implemented
+
+## 🚀 Future Enhancements
+
+### 🐳 Simplified Dev Container Setup (Future Todo)
+When time allows, implement a simpler dev container approach:
+- [ ] Create minimal devcontainer.json with basic Python/Terraform image
+- [ ] Use official images without custom Dockerfile
+- [ ] Focus on simple, fast-loading container
+- [ ] Document alternative local vs container development approaches
 
 ## 🎯 Success Metrics
 
