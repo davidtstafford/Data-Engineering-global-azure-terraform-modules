@@ -171,10 +171,193 @@ make test               # Run full test suite (container required)
 make clean              # Clean temporary files
 ```
 
+## 🧪 Testing Framework
+
+This repository includes a comprehensive testing framework for validating Terraform modules that are designed to be consumed by other repositories. The framework provides fast, reliable validation of module syntax, structure, and configuration without requiring Azure authentication.
+
+### Testing Approach
+
+Since these modules are **reusable components** consumed by other repositories (not deployed directly), the testing focuses on validation and static analysis rather than deployment testing.
+
+#### **Validation Testing** ✅
+Fast validation tests that ensure modules are ready for consumption:
+
+```bash
+make test-terraform     # Smart: test only changed modules (~90 seconds)
+make test-terraform-all # Comprehensive: test all modules (~90s × modules)
+make test-all          # Run both Python and Terraform validation tests
+```
+
+**What it validates:**
+- ✅ HCL syntax and formatting
+- ✅ Module structure (required files, variables, outputs)
+- ✅ Provider configuration compatibility
+- ✅ Variable usage and validation rules
+- ✅ Multiple configuration scenarios
+- ✅ Azure region compatibility
+- ✅ Module readiness for consumption by other repositories
+
+### Test Structure
+
+### Smart Testing
+
+The framework includes intelligent change detection that dramatically improves scalability:
+
+- **Smart testing**: Only tests modules that have changed
+- **Fast feedback**: ~90 seconds regardless of project size
+- **CI/CD friendly**: No special setup or credentials required
+
+```bash
+# Daily development (smart testing)
+make test-terraform        # Tests only changed modules
+
+# Release validation (comprehensive)  
+make test-terraform-all    # Tests all modules
+```
+
+### Test Structure
+
+The testing framework is organized under `tests/terraform/`:
+
+```
+tests/terraform/
+├── __init__.py                             # Python module init
+├── base_validation.py                      # Core validation testing infrastructure
+├── config.py                              # Test configuration and utilities
+├── fixtures/                              # Test data and configurations
+│   ├── __init__.py
+│   └── test_data.py
+└── modules/                               # Module-specific tests
+    ├── __init__.py
+    └── test_resource_group_validation.py    # Resource group validation tests
+```
+
+### Why No Plan Testing?
+
+Since these modules are designed to be **consumed by other repositories**, plan testing doesn't make sense here because:
+
+1. **No deployment context** - This repo doesn't know actual deployment scenarios
+2. **Different configurations** - Consuming repos will have their own variable values
+3. **Different subscriptions** - Each consuming repo may deploy to different Azure subscriptions
+4. **False confidence** - Plan tests here don't validate real-world usage
+
+Instead, **consuming repositories** should implement their own integration tests that validate modules in their specific deployment contexts.
+
+### Adding Tests for New Modules
+
+When creating a new Terraform module, add corresponding validation tests:
+
+1. **Create test file**: `tests/terraform/modules/test_<module_name>_validation.py`
+2. **Inherit from base class**: Use `TerraformValidationTest` for structure
+3. **Add test scenarios**: Include various configuration combinations
+4. **Update Makefile**: Add module-specific test targets if needed
+
+**Example test structure:**
+```python
+from tests.terraform.base_validation import TerraformValidationTest
+
+class TestMyModuleValidation(TerraformValidationTest):
+    def setup_method(self):
+        super().setup_method()
+        self.module_path = self.terraform_root / "path" / "to" / "my-module"
+    
+    def test_module_validation_basic(self):
+        """Test basic module validation."""
+        self.run_terraform_validation(self.module_path)
+```
+
+### Recommended Testing Workflow
+
+Follow this workflow for efficient Terraform module development and validation:
+
+#### Daily Development (Fast Loop)
+```bash
+# 1. Make code changes to your Terraform module
+# 2. Run fast validation tests (only tests changed modules)
+make test-terraform          # Smart: only tests affected modules (~30-90 seconds)
+
+# 3. Run comprehensive checks before committing
+make check                   # Includes formatting, linting, security, and validation
+```
+
+#### Pre-Deployment Validation (Optional)
+```bash
+# 1. Authenticate with Azure
+az login
+
+# 2. Run comprehensive plan-based tests (only for changed modules)
+make test-terraform-plan     # Smart: only tests affected modules (~2-5 minutes)
+
+# 3. Verify all tests pass before deployment
+```
+
+#### Full Testing (When Needed)
+```bash
+# Test ALL modules (use sparingly - gets slow with many modules)
+make test-terraform-all      # Tests all modules (~90 seconds per module)
+make test-terraform-plan-all # Plan tests for all modules (~5 minutes per module)
+```
+
+#### CI/CD Pipeline Configuration
+- **Pull Request Checks**: Use `make test-terraform` (validation only, no Azure auth)
+- **Pre-Deployment**: Optionally run `make test-terraform-plan` with Azure service principal
+- **Regular Validation**: Include `make check` in all CI/CD pipelines
+
+#### When to Use Each Test Type
+
+| Scenario              | Validation Tests       | Plan Tests               | Smart Testing          |
+| --------------------- | ---------------------- | ------------------------ | ---------------------- |
+| **Local Development** | ✅ Changed modules only | ⚠️ Optional               | 🚀 ~30-90 seconds       |
+| **Pull Request CI**   | ✅ Changed modules only | ❌ Skip (auth complexity) | 🚀 Scales with changes  |
+| **Pre-Deployment**    | ✅ Changed modules only | ✅ Changed modules only   | ⚡ Fast feedback        |
+| **Release Pipeline**  | ✅ All modules          | ✅ All modules            | ⚠️ Use `*-all` commands |
+
+### Smart Testing (Changed Modules Only)
+
+The testing framework automatically detects which Terraform modules have been modified and runs tests only for those modules. This provides:
+
+**🚀 Scalability Benefits:**
+- **1 module changed** = ~90 seconds (instead of testing all modules)
+- **10 modules in project** = Still ~90 seconds if only 1 changed
+- **20 modules in project** = Still ~90 seconds if only 1 changed
+
+**🔍 Change Detection:**
+- Detects changes compared to `main` branch
+- Includes uncommitted local changes
+- Supports staged and unstaged files
+- Automatically maps file changes to affected modules
+
+**📁 Available Commands:**
+```bash
+make test-terraform          # Smart: test changed modules only
+make test-terraform-plan     # Smart: plan test changed modules only  
+make test-terraform-all      # Test ALL modules (use when needed)
+make test-terraform-plan-all # Plan test ALL modules (very slow)
+```
+
+**When to Use Each:**
+- **Daily development**: Use smart commands (`test-terraform`)
+- **Before major releases**: Use full commands (`test-terraform-all`) 
+- **CI/CD pipelines**: Use smart commands for fast feedback
+- **Troubleshooting**: Use full commands to validate everything
+
+### Framework Benefits
+
+- **🚀 Fast**: Validation tests run in ~90 seconds without Azure authentication
+- **🔒 Secure**: No Azure credentials required for basic validation
+- **🏗️ Extensible**: Easy to add tests for new modules
+- **🔄 CI/CD Ready**: Perfect for automated testing in pipelines
+- **📊 Comprehensive**: Covers syntax, structure, and configuration validation
+
+### Technical Details
+
+For comprehensive information about the testing framework architecture, configuration options, and advanced usage, see the [Terraform Testing Framework Documentation](docs/terraform-testing-framework.md).
+
 ## 📚 Documentation
 
 - **[Getting Started](docs/getting-started.md)** - Detailed setup instructions
 - **[Module Development](docs/module-development.md)** - How to create new modules
+- **[Terraform Testing Framework](docs/terraform-testing-framework.md)** - Testing infrastructure documentation
 - **[Examples](docs/examples.md)** - Usage patterns and compositions
 - **[Contributing](CONTRIBUTING.md)** - Contribution guidelines
 

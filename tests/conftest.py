@@ -17,6 +17,11 @@ def pytest_configure(config: Any) -> None:
         "markers", "integration: Integration tests that may require external tools"
     )
     config.addinivalue_line("markers", "slow: Tests that take a long time to run")
+    config.addinivalue_line("markers", "terraform: Tests that use Terraform CLI")
+    config.addinivalue_line("markers", "terraform_plan: Tests that run terraform plan")
+    config.addinivalue_line(
+        "markers", "terraform_apply: Tests that actually deploy to Azure (dangerous)"
+    )
 
 
 @pytest.fixture
@@ -133,3 +138,34 @@ class BadlyFormattedClass:
     )
 
     return python_dir
+
+
+@pytest.fixture
+def terraform_resource_group_module(project_root: Path) -> Path:
+    """Fixture providing the path to the resource group Terraform module."""
+    return project_root / "terraform" / "foundation" / "resource-group"
+
+
+@pytest.fixture
+def terraform_modules_root(project_root: Path) -> Path:
+    """Fixture providing the path to all Terraform modules."""
+    return project_root / "terraform"
+
+
+@pytest.fixture(scope="session")
+def terraform_available():
+    """Fixture to check if Terraform is available for testing."""
+    from tests.terraform.config import TerraformTestConfig
+
+    return not TerraformTestConfig.should_skip_terraform_tests()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def skip_terraform_if_unavailable(terraform_available):
+    """Auto-fixture to skip Terraform tests if Terraform is not available."""
+    from tests.terraform.config import TerraformTestConfig
+
+    if not terraform_available:
+        pytest.skip(
+            f"Skipping Terraform tests: {TerraformTestConfig.get_skip_reason()}"
+        )

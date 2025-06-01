@@ -24,10 +24,17 @@ help: ## Show this help message
 	@echo "  make install       # Set up development environment"
 	@echo "  make pre-commit    # Run fast checks"
 	@echo ""
+	@echo "$(GREEN)🧪 Testing Commands:$(RESET)"
+	@echo "  make test              # Run Python tests only"
+	@echo "  make test-terraform    # Run Terraform tests for changed modules only"
+	@echo "  make test-terraform-all  # Run Terraform tests for ALL modules (slow)"
+	@echo "  make test-all          # Run all tests (Python + Terraform)"
+	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(RESET)"
 	@echo "  1. make install           # One-time setup"
 	@echo "  2. make pre-commit        # Quick checks while developing"
-	@echo "  3. make check             # Before committing (comprehensive)"
+	@echo "  3. make test-terraform    # Test your Terraform modules"
+	@echo "  4. make check             # Before committing (comprehensive)"
 	@echo ""
 	@echo "$(GREEN)Available commands:$(RESET)"
 	@awk 'BEGIN {FS = ":.*##"; printf ""} /^[a-zA-Z_-]+:.*?##/ { printf "  $(BLUE)%-15s$(RESET) %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -73,6 +80,24 @@ test: ## Run all Python tests with coverage
 	poetry run pytest --cov=scripts --cov-report=term-missing --cov-report=html
 	@echo "$(GREEN)✓ All tests passed!$(RESET)"
 
+test-terraform: ## Run Terraform validation tests (smart: changed modules only)
+	@echo "$(BLUE)Running Terraform validation tests for changed modules...$(RESET)"
+	python3 scripts/test_changed_modules.py
+	@echo "$(GREEN)✓ Terraform validation tests passed!$(RESET)"
+
+test-terraform-all: ## Run Terraform validation tests for ALL modules (comprehensive)
+	@echo "$(BLUE)Running Terraform validation tests for ALL modules...$(RESET)"
+	python3 scripts/test_changed_modules.py --all
+	@echo "$(GREEN)✓ All Terraform validation tests passed!$(RESET)"
+
+test-all: ## Run all tests (Python + Terraform)
+	@echo "$(BLUE)Running all tests (Python + Terraform)...$(RESET)"
+	@echo "$(YELLOW)Step 1/2: Python tests...$(RESET)"
+	$(MAKE) test
+	@echo "$(YELLOW)Step 2/2: Terraform tests...$(RESET)"
+	$(MAKE) test-terraform
+	@echo "$(GREEN)✓ All tests passed!$(RESET)"
+
 terraform-check: ## Validate and check Terraform modules
 	@echo "$(BLUE)Validating Terraform modules...$(RESET)"
 	@for dir in $$(find terraform -name "*.tf" -exec dirname {} \; | sort -u); do \
@@ -105,15 +130,17 @@ quick-check: pre-commit ## Alias for pre-commit (quick formatting and linting)
 
 check: ## Run comprehensive checks (format, lint, security, test, terraform)
 	@echo "$(BLUE)Running comprehensive checks (this may take a while)...$(RESET)"
-	@echo "$(YELLOW)Step 1/5: Running pre-commit hooks...$(RESET)"
+	@echo "$(YELLOW)Step 1/6: Running pre-commit hooks...$(RESET)"
 	$(MAKE) pre-commit
-	@echo "$(YELLOW)Step 2/5: Running dependency security check...$(RESET)"
+	@echo "$(YELLOW)Step 2/6: Running dependency security check...$(RESET)"
 	poetry run safety check --continue-on-error
-	@echo "$(YELLOW)Step 3/5: Running tests with coverage...$(RESET)"
+	@echo "$(YELLOW)Step 3/6: Running Python tests with coverage...$(RESET)"
 	$(MAKE) test
-	@echo "$(YELLOW)Step 4/5: Checking Terraform...$(RESET)"
+	@echo "$(YELLOW)Step 4/6: Running Terraform module tests...$(RESET)"
+	$(MAKE) test-terraform
+	@echo "$(YELLOW)Step 5/6: Checking Terraform...$(RESET)"
 	$(MAKE) terraform-check terraform-format
-	@echo "$(YELLOW)Step 5/5: Running validation scripts...$(RESET)"
+	@echo "$(YELLOW)Step 6/6: Running validation scripts...$(RESET)"
 	$(MAKE) validate
 	@echo "$(GREEN)✓ All comprehensive checks passed! 🚀$(RESET)"
 
