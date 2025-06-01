@@ -2,6 +2,32 @@
 
 This directory contains reusable Terraform modules for Azure infrastructure components commonly used in data engineering projects.
 
+## Module Organization
+
+Modules are organized by category to make them easy to find and understand dependencies:
+
+### Foundation (`foundation/`)
+Core infrastructure modules that other modules depend on:
+- **[resource-group](foundation/resource-group/)** - Azure Resource Group with standardized naming and tagging ✅ Available
+
+### Planned Modules
+
+Additional modules will be organized in these categories:
+
+#### Data Platform (`data/`)
+- **data-factory** - Azure Data Factory with managed identity and Git integration
+- **synapse-workspace** - Azure Synapse Analytics workspace  
+- **databricks-workspace** - Azure Databricks workspace
+
+#### Networking (`networking/`)
+- **virtual-network** - Azure Virtual Network with subnets and security groups
+- **private-endpoint** - Azure Private Endpoint for secure connectivity
+
+#### Security & Monitoring (`security/`)
+- **key-vault** - Azure Key Vault with access policies and secrets management
+- **log-analytics-workspace** - Azure Log Analytics workspace
+- **application-insights** - Azure Application Insights
+
 ## Module Structure
 
 Each module follows a standardized structure:
@@ -20,33 +46,13 @@ module-name/
         └── outputs.tf
 ```
 
-## Available Modules
-
-### Core Infrastructure
-- **resource-group** - Azure Resource Group with standardized naming and tagging
-- **storage-account** - Azure Storage Account with security best practices
-- **key-vault** - Azure Key Vault with access policies and secrets management
-
-### Data Platform
-- **data-factory** - Azure Data Factory with managed identity and Git integration
-- **synapse-workspace** - Azure Synapse Analytics workspace
-- **databricks-workspace** - Azure Databricks workspace
-
-### Networking
-- **virtual-network** - Azure Virtual Network with subnets and security groups
-- **private-endpoint** - Azure Private Endpoint for secure connectivity
-
-### Security & Monitoring
-- **log-analytics-workspace** - Azure Log Analytics workspace
-- **application-insights** - Azure Application Insights
-
 ## Usage
 
-Each module can be used independently or combined to create complete data platform environments:
+Reference modules using Git tags for version control:
 
 ```hcl
 module "resource_group" {
-  source = "./terraform/resource-group"
+  source = "git::https://github.com/your-org/azure-terraform-modules.git//terraform/foundation/resource-group?ref=v1.0.0"
   
   name     = "rg-data-platform-dev"
   location = "East US"
@@ -56,15 +62,21 @@ module "resource_group" {
     Project     = "data-platform"
   }
 }
+```
 
-module "storage_account" {
-  source = "./terraform/storage-account"
+Or reference locally during development:
+
+```hcl
+module "resource_group" {
+  source = "./terraform/foundation/resource-group"
   
-  name                = "stdataplatformdev001"
-  resource_group_name = module.resource_group.name
-  location           = module.resource_group.location
+  name     = "rg-data-platform-dev"
+  location = "East US"
   
-  tags = module.resource_group.tags
+  tags = {
+    Environment = "dev"
+    Project     = "data-platform"
+  }
 }
 ```
 

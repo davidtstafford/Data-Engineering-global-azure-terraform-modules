@@ -199,7 +199,11 @@ container-info: ## Show development container information
 
 health-check: ## Run comprehensive development environment health check
 	@echo "$(BLUE)Running development environment health check...$(RESET)"
-	@bash scripts/container-health-check.sh
+	@if [ -f scripts/health_check.py ]; then \
+		poetry run python scripts/health_check.py; \
+	else \
+		bash scripts/container-health-check.sh; \
+	fi
 
 demo: ## Quick demo showing local vs container environment
 	@echo "$(BLUE)🔍 Quick Environment Check$(RESET)"
