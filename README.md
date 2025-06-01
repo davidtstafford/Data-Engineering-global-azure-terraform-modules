@@ -217,6 +217,61 @@ tests/terraform/
     └── test_resource_group_validation.py  # Resource group validation tests
 ```
 
+### Azure Authentication for Plan Testing
+
+The plan-based tests require Azure CLI authentication to validate actual resource configurations. Here's how to set it up:
+
+#### Prerequisites
+- Azure CLI installed (`az --version`)
+- Access to an Azure subscription
+- Appropriate permissions to create resources
+
+#### Authentication Steps
+
+1. **Login to Azure CLI:**
+   ```bash
+   az login
+   ```
+   This will open a browser window for authentication.
+
+2. **Set the correct subscription (if you have multiple):**
+   ```bash
+   az account list --output table
+   az account set --subscription "Your-Subscription-Name-or-ID"
+   ```
+
+3. **Verify authentication:**
+   ```bash
+   az account show
+   ```
+
+4. **Run plan-based tests:**
+   ```bash
+   make test-terraform-plan
+   ```
+
+#### Common Authentication Errors
+
+**Error: `subscription_id` is a required provider property**
+- **Solution**: Run `az login` and ensure you're authenticated
+- **Verify**: `az account show` should display your subscription details
+
+**Error: Please run 'az login' to setup account**
+- **Solution**: Your Azure CLI session has expired, run `az login` again
+
+**Error: You do not have permission to perform this operation**
+- **Solution**: Ensure your account has appropriate permissions in the Azure subscription
+
+#### Plan Testing vs Validation Testing
+
+| Feature            | Validation Testing        | Plan Testing                 |
+| ------------------ | ------------------------- | ---------------------------- |
+| **Authentication** | ❌ Not required            | ✅ Azure CLI required         |
+| **Speed**          | ⚡ Fast (~90 seconds)      | 🐌 Slower (~5-10 minutes)     |
+| **Coverage**       | Syntax, structure, config | Full resource planning       |
+| **CI/CD Ready**    | ✅ Yes                     | ⚠️ Requires Azure credentials |
+| **Use Case**       | Daily development         | Pre-deployment validation    |
+
 ### Adding Tests for New Modules
 
 When creating a new Terraform module, add corresponding validation tests:
@@ -239,6 +294,81 @@ class TestMyModuleValidation(TerraformValidationTest):
         """Test basic module validation."""
         self.run_terraform_validation(self.module_path)
 ```
+
+### Recommended Testing Workflow
+
+Follow this workflow for efficient Terraform module development and validation:
+
+#### Daily Development (Fast Loop)
+```bash
+# 1. Make code changes to your Terraform module
+# 2. Run fast validation tests (only tests changed modules)
+make test-terraform          # Smart: only tests affected modules (~30-90 seconds)
+
+# 3. Run comprehensive checks before committing
+make check                   # Includes formatting, linting, security, and validation
+```
+
+#### Pre-Deployment Validation (Optional)
+```bash
+# 1. Authenticate with Azure
+az login
+
+# 2. Run comprehensive plan-based tests (only for changed modules)
+make test-terraform-plan     # Smart: only tests affected modules (~2-5 minutes)
+
+# 3. Verify all tests pass before deployment
+```
+
+#### Full Testing (When Needed)
+```bash
+# Test ALL modules (use sparingly - gets slow with many modules)
+make test-terraform-all      # Tests all modules (~90 seconds per module)
+make test-terraform-plan-all # Plan tests for all modules (~5 minutes per module)
+```
+
+#### CI/CD Pipeline Configuration
+- **Pull Request Checks**: Use `make test-terraform` (validation only, no Azure auth)
+- **Pre-Deployment**: Optionally run `make test-terraform-plan` with Azure service principal
+- **Regular Validation**: Include `make check` in all CI/CD pipelines
+
+#### When to Use Each Test Type
+
+| Scenario              | Validation Tests       | Plan Tests               | Smart Testing          |
+| --------------------- | ---------------------- | ------------------------ | ---------------------- |
+| **Local Development** | ✅ Changed modules only | ⚠️ Optional               | 🚀 ~30-90 seconds       |
+| **Pull Request CI**   | ✅ Changed modules only | ❌ Skip (auth complexity) | 🚀 Scales with changes  |
+| **Pre-Deployment**    | ✅ Changed modules only | ✅ Changed modules only   | ⚡ Fast feedback        |
+| **Release Pipeline**  | ✅ All modules          | ✅ All modules            | ⚠️ Use `*-all` commands |
+
+### Smart Testing (Changed Modules Only)
+
+The testing framework automatically detects which Terraform modules have been modified and runs tests only for those modules. This provides:
+
+**🚀 Scalability Benefits:**
+- **1 module changed** = ~90 seconds (instead of testing all modules)
+- **10 modules in project** = Still ~90 seconds if only 1 changed
+- **20 modules in project** = Still ~90 seconds if only 1 changed
+
+**🔍 Change Detection:**
+- Detects changes compared to `main` branch
+- Includes uncommitted local changes
+- Supports staged and unstaged files
+- Automatically maps file changes to affected modules
+
+**📁 Available Commands:**
+```bash
+make test-terraform          # Smart: test changed modules only
+make test-terraform-plan     # Smart: plan test changed modules only  
+make test-terraform-all      # Test ALL modules (use when needed)
+make test-terraform-plan-all # Plan test ALL modules (very slow)
+```
+
+**When to Use Each:**
+- **Daily development**: Use smart commands (`test-terraform`)
+- **Before major releases**: Use full commands (`test-terraform-all`) 
+- **CI/CD pipelines**: Use smart commands for fast feedback
+- **Troubleshooting**: Use full commands to validate everything
 
 ### Framework Benefits
 

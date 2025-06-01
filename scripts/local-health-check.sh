@@ -38,7 +38,7 @@ command_exists() {
 # Function to get version of a command
 get_version() {
     local cmd=$1
-    
+
     if command_exists "$cmd"; then
         case $cmd in
             "terraform")

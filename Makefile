@@ -26,8 +26,9 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(GREEN)🧪 Testing Commands:$(RESET)"
 	@echo "  make test              # Run Python tests only"
-	@echo "  make test-terraform    # Run Terraform module tests"
-	@echo "  make test-terraform-plan # Run terraform plan tests only"
+	@echo "  make test-terraform    # Run Terraform tests for changed modules only"
+	@echo "  make test-terraform-plan # Run terraform plan tests for changed modules only"
+	@echo "  make test-terraform-all  # Run Terraform tests for ALL modules (slow)"
 	@echo "  make test-all          # Run all tests (Python + Terraform)"
 	@echo ""
 	@echo "$(YELLOW)Development Workflow:$(RESET)"
@@ -81,14 +82,24 @@ test: ## Run all Python tests with coverage
 	@echo "$(GREEN)✓ All tests passed!$(RESET)"
 
 test-terraform: ## Run Terraform validation tests (no Azure auth required)
-	@echo "$(BLUE)Running Terraform validation tests...$(RESET)"
-	poetry run pytest tests/terraform/modules/test_resource_group_validation.py -v -m "terraform"
+	@echo "$(BLUE)Running Terraform validation tests for changed modules...$(RESET)"
+	python3 scripts/test_changed_modules.py --test-type validation
 	@echo "$(GREEN)✓ Terraform validation tests passed!$(RESET)"
 
 test-terraform-plan: ## Run Terraform plan tests (requires Azure auth)
-	@echo "$(BLUE)Running Terraform plan tests...$(RESET)"
-	poetry run pytest tests/terraform/modules/test_resource_group_terraform.py -v -m "terraform"
+	@echo "$(BLUE)Running Terraform plan tests for changed modules...$(RESET)"
+	python3 scripts/test_changed_modules.py --test-type plan
 	@echo "$(GREEN)✓ Terraform plan tests passed!$(RESET)"
+
+test-terraform-all: ## Run Terraform validation tests for ALL modules (slow)
+	@echo "$(BLUE)Running Terraform validation tests for ALL modules...$(RESET)"
+	python3 scripts/test_changed_modules.py --test-type validation --all
+	@echo "$(GREEN)✓ All Terraform validation tests passed!$(RESET)"
+
+test-terraform-plan-all: ## Run Terraform plan tests for ALL modules (requires Azure auth, very slow)
+	@echo "$(BLUE)Running Terraform plan tests for ALL modules...$(RESET)"
+	python3 scripts/test_changed_modules.py --test-type plan --all
+	@echo "$(GREEN)✓ All Terraform plan tests passed!$(RESET)"
 
 test-all: ## Run all tests (Python + Terraform)
 	@echo "$(BLUE)Running all tests (Python + Terraform)...$(RESET)"
