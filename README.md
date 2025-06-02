@@ -1,6 +1,60 @@
 # Azure Terraform Modules for Data Engineering
 
-A collection of reusable, production-ready Terraform modules for building Azure data engineering platforms. These modules are designed to be referenced from other repositories using Git tags for reliable version control.
+A collection of reusable, production-ready Terrafor### Development Setup
+
+Choose the development environment that works best for your platform:
+
+#### Option 1: Dev Container (Recommended for Windows, Alternative for Mac/Linux)
+
+**🎯 Why use the dev container?**
+- ✅ **Zero manual setup** - All tools automatically installed and configured
+- ✅ **Cross-platform consistency** - Works identically on Windows, Mac, and Linux
+- ✅ **Windows compatibility** - Eliminates Linux command issues on Windows
+- ✅ **Isolated environment** - No conflicts with your host system
+- ✅ **Pre-configured VS Code** - Extensions and settings ready to go
+
+**Prerequisites:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Rancher Desktop](https://rancherdesktop.io/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+**Setup Steps:**
+1. **Install prerequisites** (if not already installed)
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules.git
+   cd Data-Engineering-global-azure-terraform-modules
+   ```
+3. **Open in VS Code:**
+   ```bash
+   code .
+   ```
+4. **Reopen in Container:**
+   - When prompted, click "Reopen in Container"
+   - Or use Command Palette (Ctrl/Cmd+Shift+P): `Dev Containers: Reopen in Container`
+5. **Wait for automatic setup** - The container will install:
+   - Python 3.11 + Poetry
+   - Terraform  
+   - Azure CLI
+   - Git
+   - All VS Code extensions
+   - All project dependencies via `make install`
+
+**Ready to develop!** All commands work identically to local development.
+
+#### Option 2: Local Development Setup (Mac/Linux)
+
+For Mac/Linux users who prefer local development:
+
+**Prerequisites:**
+- **Terraform** (latest version)
+- **Azure CLI** (latest version)
+- **Python** (3.11+) with Poetry
+- **VS Code** (recommended editor)
+- **Git** for version control
+
+**Setup Steps:**
+1. **Install dependencies:** building Azure data engineering platforms. These modules are designed to be referenced from other repositories using Git tags for reliable version control.
 
 ## 🎯 Purpose
 
@@ -24,6 +78,8 @@ azure-terraform-modules/
 ├── pyproject.toml              # Poetry dependencies and Python config
 ├── Makefile                    # Development commands and workflows
 ├── .gitignore                  # Git ignore patterns
+├── .devcontainer/              # Dev container configuration
+│   └── devcontainer.json       # Container setup with auto-installed tools
 ├── .github/                    # GitHub Actions and templates
 │   ├── workflows/              
 │   │   └── validate.yml        # CI/CD pipeline
@@ -69,6 +125,8 @@ azure-terraform-modules/
 
 ## 🚀 Quick Start
 
+**💡 New to development?** Consider our [dev container](#option-1-dev-container-recommended-for-windows-alternative-for-maclinux) for zero-configuration setup that works consistently across Windows, Mac, and Linux.
+
 ### Using Modules in Your Project
 
 Reference modules in your Terraform configuration using Git tags:
@@ -97,17 +155,59 @@ module "storage_account" {
 
 ### Development Setup
 
-#### Prerequisites
+Choose the development environment that works best for your platform:
+
+#### Option 1: Dev Container (Recommended for Windows, Alternative for Mac/Linux)
+
+**🎯 Why use the dev container?**
+- ✅ **Zero manual setup** - All tools automatically installed and configured
+- ✅ **Cross-platform consistency** - Works identically on Windows, Mac, and Linux
+- ✅ **Windows compatibility** - Eliminates Linux command issues on Windows
+- ✅ **Isolated environment** - No conflicts with your host system
+- ✅ **Pre-configured VS Code** - Extensions and settings ready to go
+
+**Prerequisites:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Rancher Desktop](https://rancherdesktop.io/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+**Setup Steps:**
+1. **Install prerequisites** (if not already installed)
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-org/azure-terraform-modules.git
+   cd azure-terraform-modules
+   ```
+3. **Open in VS Code:**
+   ```bash
+   code .
+   ```
+4. **Reopen in Container:**
+   - When prompted, click "Reopen in Container"
+   - Or use Command Palette (Ctrl/Cmd+Shift+P): `Dev Containers: Reopen in Container`
+5. **Wait for automatic setup** - The container will install:
+   - Python 3.11 + Poetry
+   - Terraform  
+   - Azure CLI
+   - Git
+   - All VS Code extensions
+   - All project dependencies via `make install`
+
+**Ready to develop!** All commands work identically to local development.
+
+#### Option 2: Local Development Setup (Mac/Linux)
+
+For Mac/Linux users who prefer local development:
+
+**Prerequisites:**
 - **Terraform** (latest version)
 - **Azure CLI** (latest version)
 - **Python** (3.11+) with Poetry
 - **VS Code** (recommended editor)
 - **Git** for version control
 
-#### Local Development Setup
-Setup your development environment locally:
-
-1. **Install dependencies**:
+**Setup Steps:**
+1. **Install dependencies:**
 
    **On macOS (using Homebrew):**
    ```bash
@@ -124,7 +224,7 @@ Setup your development environment locally:
    curl -sSL https://install.python-poetry.org | python3 -
    ```
 
-   **On other platforms:**
+   **On Linux:**
    - **Terraform**: Download from https://terraform.io/downloads
    - **Azure CLI**: Follow instructions at https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
    - **Poetry**: Follow instructions at https://python-poetry.org/docs/#installation
@@ -143,21 +243,40 @@ Setup your development environment locally:
    brew install opentofu
    ```
 
-2. **Clone and setup**:
+2. **Clone and setup:**
    ```bash
    git clone https://github.com/your-org/azure-terraform-modules.git
    cd azure-terraform-modules
    make install        # Install Python dependencies and pre-commit hooks
    ```
 
-3. **Start developing**:
+3. **Start developing:**
    ```bash
    make help           # See all commands
    make install        # Ensure everything is ready
    make pre-commit     # Quick validation
    ```
 
+#### Which Development Option Should You Choose?
+
+**Choose Dev Container if:**
+- 🪟 **You're on Windows** - Eliminates Linux command compatibility issues
+- 🚀 **You want zero setup time** - Everything configured automatically
+- 🔒 **You prefer isolated environments** - No interference with host system
+- 👋 **You're new to the project** - Get started immediately without tool conflicts
+
+**Choose Local Development if:**
+- 🍎 **You're on Mac/Linux** and comfortable with local tool management
+- ⚡ **You want maximum performance** - No container overhead
+**Choose Local Development if:**
+- 🍎 **You're on Mac/Linux** and comfortable with local tool management
+- ⚡ **You want maximum performance** - No container overhead
+- 🔧 **You already have tools installed** - Don't want to change existing setup
+- 🤖 **You need OS-level integrations** - Git credentials, system tools, etc.
+
 ## 🛠️ Development Commands
+
+**Note:** All commands work identically in both dev container and local environments.
 
 The most commonly used commands for daily development:
 
