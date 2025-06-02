@@ -103,6 +103,7 @@ azure-terraform-modules/
     ├── foundation/            # Core Azure resources
     │   ├── README.md
     │   ├── resource-group/    # Azure Resource Group
+    │   ├── diagnostic-settings/ # Azure Diagnostic Settings
     │   ├── storage-account/   # Azure Storage Account (planned)
     │   └── key-vault/        # Azure Key Vault (planned)
     ├── networking/            # Network-related resources (planned)
@@ -494,6 +495,7 @@ For comprehensive information about the testing framework architecture, configur
 | Module                                                   | Purpose               | Status      |
 | -------------------------------------------------------- | --------------------- | ----------- |
 | [resource-group](terraform/foundation/resource-group/)   | Azure Resource Group  | ✅ Available |
+| [diagnostic-settings](terraform/foundation/diagnostic-settings/) | Azure Diagnostic Settings | ✅ Available |
 | [storage-account](terraform/foundation/storage-account/) | Azure Storage Account | 🚧 Planned   |
 | [key-vault](terraform/foundation/key-vault/)             | Azure Key Vault       | 🚧 Planned   |
 
