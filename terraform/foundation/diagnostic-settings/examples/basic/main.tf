@@ -1,0 +1,27 @@
+terraform {
+  required_version = ">= 1.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+module "diagnostic_settings" {
+  source = "../../"
+
+  name               = var.diagnostic_setting_name
+  target_resource_id = var.target_resource_id
+
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  log_analytics_destination_type = var.log_analytics_destination_type
+
+  category_groups = var.category_groups
+  metrics         = var.metrics
+}
