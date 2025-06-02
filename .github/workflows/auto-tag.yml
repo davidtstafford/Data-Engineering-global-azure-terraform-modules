@@ -1,0 +1,258 @@
+name: Auto Tag Release
+
+on:
+  push:
+    branches:
+      - main
+    # Only run when there are meaningful changes (skip docs-only changes)
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - 'htmlcov/**'
+
+permissions:
+  contents: write  # Required for creating tags and releases
+
+jobs:
+  auto-tag:
+    name: Auto Tag Release
+    runs-on: ubuntu-latest
+    # Only run if this is a push to main (typically after PR merge)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for version calculation
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Get latest tag
+        id: get-latest-tag
+        run: |
+          # Get the latest tag, default to v0.0.0 if no tags exist
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "📋 Latest tag: $latest_tag"
+
+      - name: Analyze commits for version bump
+        id: version-bump
+        run: |
+          latest_tag="${{ steps.get-latest-tag.outputs.latest_tag }}"
+
+          # Get commits since last tag
+          if [[ "$latest_tag" == "v0.0.0" ]]; then
+            # If no previous tags, get last 10 commits to avoid overwhelming output
+            commits=$(git log --pretty=format:"%s" --no-merges -10)
+            echo "🆕 No previous tags found, analyzing recent commits..."
+          else
+            # Get commits since last tag
+            commits=$(git log ${latest_tag}..HEAD --pretty=format:"%s" --no-merges)
+            echo "📝 Commits since ${latest_tag}:"
+          fi
+
+          echo "$commits"
+
+          # Analyze commits for version bump using conventional commits
+          major_bump=false
+          minor_bump=false
+          patch_bump=false
+
+          while IFS= read -r commit; do
+            echo "  Analyzing: $commit"
+
+            # Major version triggers (breaking changes)
+            if [[ $commit =~ ^[a-z]+(\(.+\))?!: ]] || [[ $commit =~ BREAKING[[:space:]]CHANGE ]]; then
+              major_bump=true
+              echo "    🚨 Breaking change detected"
+            # Minor version triggers (new features)
+            elif [[ $commit =~ ^feat(\(.+\))?: ]]; then
+              minor_bump=true
+              echo "    ✨ Feature detected"
+            # Patch version triggers (fixes, improvements)
+            elif [[ $commit =~ ^(fix|perf|refactor|build|ci|chore)(\(.+\))?: ]]; then
+              patch_bump=true
+              echo "    🔧 Fix/improvement detected"
+            # Default: any other changes trigger patch
+            else
+              patch_bump=true
+              echo "    📦 General change detected"
+            fi
+          done <<< "$commits"
+
+          # Determine version bump priority: major > minor > patch
+          if [[ "$major_bump" == "true" ]]; then
+            echo "bump_type=major" >> $GITHUB_OUTPUT
+            echo "🚨 Version bump: MAJOR (breaking changes)"
+          elif [[ "$minor_bump" == "true" ]]; then
+            echo "bump_type=minor" >> $GITHUB_OUTPUT
+            echo "✨ Version bump: MINOR (new features)"
+          else
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
+            echo "🔧 Version bump: PATCH (fixes/improvements)"
+          fi
+
+      - name: Calculate new version
+        id: new-version
+        run: |
+          latest_tag="${{ steps.get-latest-tag.outputs.latest_tag }}"
+          bump_type="${{ steps.version-bump.outputs.bump_type }}"
+
+          # Remove 'v' prefix for calculation
+          version=${latest_tag#v}
+
+          # Split version into components
+          IFS='.' read -ra VERSION_PARTS <<< "$version"
+          major=${VERSION_PARTS[0]:-0}
+          minor=${VERSION_PARTS[1]:-0}
+          patch=${VERSION_PARTS[2]:-0}
+
+          # Calculate new version based on bump type
+          case $bump_type in
+            major)
+              new_major=$((major + 1))
+              new_minor=0
+              new_patch=0
+              ;;
+            minor)
+              new_major=$major
+              new_minor=$((minor + 1))
+              new_patch=0
+              ;;
+            patch)
+              new_major=$major
+              new_minor=$minor
+              new_patch=$((patch + 1))
+              ;;
+          esac
+
+          new_version="v${new_major}.${new_minor}.${new_patch}"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "🏷️ New version: $new_version (was: $latest_tag, bump: $bump_type)"
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          latest_tag="${{ steps.get-latest-tag.outputs.latest_tag }}"
+          new_version="${{ steps.new-version.outputs.new_version }}"
+          bump_type="${{ steps.version-bump.outputs.bump_type }}"
+
+          # Get commit messages for release notes
+          if [[ "$latest_tag" == "v0.0.0" ]]; then
+            commits=$(git log --pretty=format:"- %s" --no-merges -10)
+          else
+            commits=$(git log ${latest_tag}..HEAD --pretty=format:"- %s" --no-merges)
+          fi
+
+          # Create release notes
+          cat > release_notes.md << EOF
+          ## 🚀 Azure Terraform Modules ${new_version}
+
+          **Version Type:** ${bump_type} release
+          **Previous Version:** ${latest_tag}
+
+          ### 📋 Changes in this Release
+          ${commits}
+
+          ### 📖 Usage
+          Reference this release in your Terraform configurations:
+          \`\`\`hcl
+          # Resource Group Module
+          module "resource_group" {
+            source = "git::https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules.git//terraform/foundation/resource-group?ref=${new_version}"
+
+            name     = "rg-data-platform-prod"
+            location = "East US"
+            tags = {
+              Environment = "production"
+              Project     = "data-platform"
+            }
+          }
+
+          # Diagnostic Settings Module
+          module "diagnostic_settings" {
+            source = "git::https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules.git//terraform/foundation/diagnostic-settings?ref=${new_version}"
+
+            name               = "diagnostic-settings"
+            target_resource_id = module.resource_group.id
+            # ... your configuration
+          }
+          \`\`\`
+
+          ### 🔧 Available Modules
+          - **Foundation**: \`resource-group\`, \`diagnostic-settings\`
+          - **More modules**: See [terraform/](https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules/tree/main/terraform) directory
+
+          ### 📚 Documentation
+          - [Getting Started](https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules/blob/main/docs/getting-started.md)
+          - [Module Development](https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules/blob/main/docs/module-development.md)
+          - [Contributing](https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules/blob/main/CONTRIBUTING.md)
+
+          ---
+          *🤖 Auto-generated release created by GitHub Actions*
+          EOF
+
+          echo "release_notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        id: create-tag
+        run: |
+          new_version="${{ steps.new-version.outputs.new_version }}"
+          bump_type="${{ steps.version-bump.outputs.bump_type }}"
+
+          # Create annotated tag with detailed information
+          git tag -a "$new_version" -m "Release $new_version
+
+          🏷️ Version: $new_version
+          📈 Type: $bump_type release
+          📅 Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          🤖 Created by: GitHub Actions
+
+          This release includes all changes merged to main since the previous version.
+          See the GitHub release for detailed release notes and usage examples."
+
+          # Push the tag
+          git push origin "$new_version"
+
+          echo "✅ Created and pushed tag: $new_version"
+          echo "tag_created=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.create-tag.outputs.tag_created != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.new-version.outputs.new_version }}
+          name: "Release ${{ steps.new-version.outputs.new_version }}"
+          body_path: ${{ steps.release-notes.outputs.release_notes_file }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false  # We provide our own notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Job Summary
+        run: |
+          echo "## 🏷️ Auto-Tag Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Previous Version** | \`${{ steps.get-latest-tag.outputs.latest_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **New Version** | \`${{ steps.new-version.outputs.new_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Bump Type** | \`${{ steps.version-bump.outputs.bump_type }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tag Created** | ✅ Successfully created and pushed |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Release Created** | ✅ GitHub release created |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📖 Usage" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`hcl" >> $GITHUB_STEP_SUMMARY
+          echo "module \"example\" {" >> $GITHUB_STEP_SUMMARY
+          echo "  source = \"git::https://github.com/davidtstafford/Data-Engineering-global-azure-terraform-modules.git//terraform/foundation/resource-group?ref=${{ steps.new-version.outputs.new_version }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "  # ... your configuration" >> $GITHUB_STEP_SUMMARY
+          echo "}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
