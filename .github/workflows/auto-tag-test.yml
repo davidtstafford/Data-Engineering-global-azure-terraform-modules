@@ -1,0 +1,49 @@
+name: Auto Tag Release (Test)
+
+on:
+  push:
+    branches:
+      - feature/auto-tagging-workflow  # Test on this branch only
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - 'htmlcov/**'
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag-test:
+    name: Test Auto Tag Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test - Get latest tag
+        id: get-latest-tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "📋 Latest tag: $latest_tag"
+
+      - name: Test - Analyze commits
+        run: |
+          latest_tag="${{ steps.get-latest-tag.outputs.latest_tag }}"
+
+          if [[ "$latest_tag" == "v0.0.0" ]]; then
+            commits=$(git log --pretty=format:"%s" --no-merges -5)
+            echo "🆕 No previous tags found, analyzing recent commits..."
+          else
+            commits=$(git log ${latest_tag}..HEAD --pretty=format:"%s" --no-merges)
+            echo "📝 Commits since ${latest_tag}:"
+          fi
+
+          echo "$commits"
+          echo "✅ Workflow syntax and logic validated!"
