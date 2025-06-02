@@ -8,7 +8,7 @@ This example demonstrates configuring diagnostic settings for **real-time stream
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Azure Resource │───▶│   Event Hub     │───▶│  External       │
 │  (Target)       │    │  (Real-time)    │    │  Processing     │
-└─────────────────────┘    └─────────────────┘    └─────────────────┘
+└─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │
                                 ▼
                         ┌─────────────────┐
